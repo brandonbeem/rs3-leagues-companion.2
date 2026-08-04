@@ -6,6 +6,7 @@ REQUIRED = [
     ROOT / "index.html",
     ROOT / "netlify.toml",
     ROOT / "features/dependencies/dependency-engine.js",
+    ROOT / "features/dependencies/achievement-set-engine.js",
     ROOT / "features/dependencies/region-registry.js",
     ROOT / "features/dependencies/fort-forinthry-data.js",
     ROOT / "features/dependencies/city-of-um-data.js",
@@ -47,9 +48,20 @@ for expected in (
         errors.append(f"Progression-area registration is missing: {expected}")
 
 city_data = (ROOT / "features/dependencies/city-of-um-data.js").read_text(encoding="utf-8")
-for expected in ("locality: 'City of Um'", "region: 'Misthalin'", "um-quest-necromancy"):
+for expected in (
+    "locality: 'City of Um'",
+    "region: 'Misthalin'",
+    "um-quest-necromancy",
+    "achievementSets",
+    "underworld-achievement-tiers",
+):
     if expected not in city_data:
         errors.append(f"City of Um model is missing: {expected}")
+
+achievement_engine = (ROOT / "features/dependencies/achievement-set-engine.js").read_text(encoding="utf-8")
+for expected in ("class AchievementSetEngine", "completedCount", "readyCount", "percent"):
+    if expected not in achievement_engine:
+        errors.append(f"Achievement checklist engine is missing: {expected}")
 
 if errors:
     print("Project validation failed:")
