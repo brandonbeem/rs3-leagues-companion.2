@@ -1,0 +1,42 @@
+name: Validate companion build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'agent/**'
+      - 'feature/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate project structure
+        run: python tools/validate_project.py
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check features/dependencies/dependency-engine.js
+          node --check features/dependencies/region-registry.js
+          node --check features/dependencies/fort-forinthry-data.js
+          node --check features/dependencies/register-regions.js
+          node --check features/dependencies/region-planner.js
+
+      - name: Build Netlify output
+        run: python tools/build_netlify.py
+
+      - name: Validate build output
+        run: |
+          test -s dist/index.html
+          test -s dist/features/dependencies/region-planner.js
+          grep -q 'region-planner.js' dist/index.html
+          grep -q 'region-planner.css' dist/index.html
