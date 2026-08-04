@@ -1,5 +1,6 @@
 import type { ItemId, LocationId, RegionId, TaskId } from '../ids';
 import type { SkillName } from '../player/types';
+import type { SourceReference, VerificationStatus } from '../world/types';
 
 export type TaskCategory =
   | 'skilling'
@@ -12,7 +13,7 @@ export type TaskCategory =
   | 'other';
 
 export type TaskTier = 'easy' | 'medium' | 'hard' | 'elite' | 'master';
-export type VerificationStatus = 'verified' | 'needs-review';
+export type TaskPriority = 'Quick Win' | 'Early' | 'Mid' | 'Late' | 'Long Grind';
 
 export interface SkillRequirement {
   skill: SkillName;
@@ -25,6 +26,7 @@ export interface ItemRequirement {
   quantity: number;
   consumed?: boolean;
   mustBeOwnedBeforeRoute?: boolean;
+  label?: string;
 }
 
 export interface TaskRequirements {
@@ -42,18 +44,24 @@ export interface AcquisitionStep {
   itemId?: ItemId;
   quantity?: number;
   notes?: string;
+  reviewStatus?: VerificationStatus;
+  sources?: SourceReference[];
 }
 
 export interface TaskDefinition {
   id: TaskId;
+  legacyTaskId: number;
   name: string;
   description: string;
+  information: string;
   category: TaskCategory;
   tier: TaskTier;
+  priority: TaskPriority;
   points: number;
   locality: string;
   regionId: RegionId;
   locationId: LocationId | null;
+  alternateLocationIds?: LocationId[];
   requirements: TaskRequirements;
   recommendedItemIds: ItemId[];
   acquisitionSteps: AcquisitionStep[];
@@ -61,12 +69,13 @@ export interface TaskDefinition {
   estimatedSeconds: number | null;
   routePolicy: 'normal' | 'requires-item-owned' | 'manual-only' | 'blocked-review';
   reviewStatus: VerificationStatus;
-  sourceUrl?: string;
-  sourceCheckedAt?: string;
+  sources: SourceReference[];
+  completionRate?: number;
   notes?: string[];
 }
 
 export interface TaskEligibility {
+  status: 'completed' | 'available' | 'setup-needed' | 'blocked';
   available: boolean;
   missingSkills: SkillRequirement[];
   missingItems: ItemRequirement[];
@@ -74,6 +83,7 @@ export interface TaskEligibility {
   missingUnlocks: string[];
   missingTasks: TaskId[];
   blockedByReview: boolean;
+  warnings: string[];
 }
 
 export const emptyRequirements = (): TaskRequirements => ({
