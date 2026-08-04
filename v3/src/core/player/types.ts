@@ -45,7 +45,7 @@ export interface PlayerPreferences {
 }
 
 export interface PlayerState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   skills: Partial<Record<SkillName, number>>;
   regionUnlocks: Record<RegionId, RegionUnlockState>;
   selectedRelicIds: string[];
@@ -53,6 +53,7 @@ export interface PlayerState {
   currentLocationId: LocationId | null;
   inventory: Partial<Record<ItemId, number>>;
   bankInventory: Partial<Record<ItemId, number>>;
+  toolBeltItemIds: ItemId[];
   ownedAssetIds: ItemId[];
   unlockedTeleportIds: TeleportId[];
   questIds: string[];
@@ -67,6 +68,7 @@ export type PlayerAction =
   | { type: 'toggle-task'; taskId: TaskId }
   | { type: 'set-location'; locationId: LocationId | null }
   | { type: 'set-item-quantity'; itemId: ItemId; quantity: number; storage: 'inventory' | 'bank' }
+  | { type: 'set-tool-belt-item'; itemId: ItemId; added: boolean }
   | { type: 'set-asset-owned'; itemId: ItemId; owned: boolean }
   | { type: 'set-preference'; key: keyof PlayerPreferences; value: PlayerPreferences[keyof PlayerPreferences] }
   | { type: 'reset-player' };
