@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { PlayerProvider } from './core/player/PlayerProvider';
 import './styles.css';
+import './engine.css';
 
 const rootElement = document.getElementById('root');
 
