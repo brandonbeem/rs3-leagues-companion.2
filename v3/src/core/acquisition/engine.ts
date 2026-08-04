@@ -94,7 +94,12 @@ export function buildResourceOpportunities(
   limit = 3,
 ): ResourceOpportunity[] {
   return items
-    .filter((item) => item.persistent && item.starterKitEligible)
+    .filter((item) =>
+      item.persistent
+      && item.starterKitEligible
+      && !player.ownedAssetIds.includes(item.id)
+      && (player.inventory[item.id] ?? 0) < 1,
+    )
     .map((item) => {
       const opportunityTasks = tasks.filter((task) =>
         !player.completedTaskIds.includes(task.id)
