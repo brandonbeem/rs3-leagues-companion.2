@@ -1,24 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { PlaceholderPage } from './components/PlaceholderPage';
+import { RegionPlanner } from './components/RegionPlanner';
 import { RelicPlanner } from './components/RelicPlanner';
 import { Sidebar } from './components/Sidebar';
+import { usePlayer } from './core/player/PlayerProvider';
+import { getUnlockedRegions } from './core/regions/regionEngine';
+import { regions } from './data/regions';
 import { relics } from './data/relics';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { locationById } from './data/world';
 import type { PageId } from './types';
 
-const pageContent: Record<Exclude<PageId, 'dashboard' | 'relics' | 'build'>, { title: string; eyebrow: string; description: string; nextStep: string }> = {
+const pageContent: Record<Exclude<PageId, 'dashboard' | 'relics' | 'regions' | 'build'>, { title: string; eyebrow: string; description: string; nextStep: string }> = {
   tasks: {
     title: 'Task Tracker',
-    eyebrow: 'LEGACY SYSTEM PRESERVED',
-    description: 'The 1,000+ task database will be extracted from V20 into typed task and dependency data.',
-    nextStep: 'Move task records and completion state into separate modules.',
-  },
-  regions: {
-    title: 'Region Planner',
-    eyebrow: 'NEXT MAJOR MIGRATION',
-    description: 'Regions will become structured unlock data with towns, travel links, banks, NPCs, and skilling locations.',
-    nextStep: 'Migrate region selection and build the first Misthalin location records.',
+    eyebrow: 'TASK SCHEMA READY',
+    description: 'The canonical task, item, skill, location, and route-policy schema now exists.',
+    nextStep: 'Migrate the real V20 task records without inventing or duplicating requirements.',
   },
   friends: {
     title: 'Friends',
@@ -28,40 +26,55 @@ const pageContent: Record<Exclude<PageId, 'dashboard' | 'relics' | 'build'>, { t
   },
   route: {
     title: 'Route Planner',
-    eyebrow: 'PLANNING ENGINE',
-    description: 'The route planner will use one canonical eligibility engine instead of overlapping gatekeeper functions.',
-    nextStep: 'Define task, player, inventory, region, and travel context interfaces.',
+    eyebrow: 'GRAPH ENGINE ONLINE',
+    description: 'The first shortest-path graph now connects player location, region access, and provisional travel costs.',
+    nextStep: 'Attach verified tasks and requirement checks to location nodes.',
   },
   strategy: {
     title: 'Strategy Center',
     eyebrow: 'DECISION SUPPORT',
-    description: 'Strategy tools will consume the same typed relic, task, region, and player-state data as the route planner.',
-    nextStep: 'Move relic comparisons and region recommendations into reusable selectors.',
+    description: 'Strategy tools will consume the same player, relic, task, region, and world-graph data.',
+    nextStep: 'Build selectors that compare available routes instead of sorting tasks by points.',
   },
 };
 
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>('dashboard');
-  const [selectedRelics, setSelectedRelics] = useLocalStorage<string[]>('rs3-v3-selected-relics', []);
+  const { player, dispatch } = usePlayer();
+  const selectedRelics = player.selectedRelicIds;
 
   const selectedRelicRecords = useMemo(
     () => selectedRelics.map((id) => relics.find((relic) => relic.id === id)).filter(Boolean),
     [selectedRelics],
   );
 
+  const currentLocationName = player.currentLocationId
+    ? locationById.get(player.currentLocationId)?.name ?? 'Unknown location'
+    : 'Not set';
+
+  const unlockedRegionCount = getUnlockedRegions(player, regions).length;
+
   function toggleRelic(id: string) {
-    setSelectedRelics((current) =>
-      current.includes(id) ? current.filter((relicId) => relicId !== id) : [...current, id],
-    );
+    dispatch({ type: 'toggle-relic', relicId: id });
   }
 
   function renderPage() {
     if (activePage === 'dashboard') {
-      return <Dashboard selectedRelics={selectedRelics.length} />;
+      return (
+        <Dashboard
+          selectedRelics={selectedRelics.length}
+          unlockedRegions={unlockedRegionCount}
+          currentLocationName={currentLocationName}
+        />
+      );
     }
 
     if (activePage === 'relics') {
       return <RelicPlanner selectedRelics={selectedRelics} onToggleRelic={toggleRelic} />;
+    }
+
+    if (activePage === 'regions') {
+      return <RegionPlanner />;
     }
 
     if (activePage === 'build') {
@@ -69,14 +82,19 @@ export default function App() {
         <section className="page-stack">
           <header className="page-header">
             <div>
-              <p className="eyebrow">LOCAL BUILD STATE</p>
+              <p className="eyebrow">GLOBAL PLAYER STATE</p>
               <h1>My Build</h1>
-              <p>Your V3 selections are saved locally without requiring a paid account or database.</p>
+              <p>Relics, region unlocks, current location, and future task progress now share one local player record.</p>
             </div>
             <div className="version-badge">{selectedRelics.length} selected</div>
           </header>
 
           <article className="panel build-panel">
+            <div className="player-state-strip">
+              <div><span>Regions</span><strong>{unlockedRegionCount}</strong></div>
+              <div><span>Current location</span><strong>{currentLocationName}</strong></div>
+              <div><span>Completed tasks</span><strong>{player.completedTaskIds.length}</strong></div>
+            </div>
             {selectedRelicRecords.length === 0 ? (
               <div className="empty-state">
                 <h2>No relics selected yet</h2>
