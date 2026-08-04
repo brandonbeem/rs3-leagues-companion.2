@@ -1,7 +1,12 @@
 import { misthalinEarlyTasks } from './misthalinEarly';
 import { misthalinExpansionTasks } from './misthalinExpansion';
+import { misthalinRemainingEasyMediumTasks } from './misthalinRemainingEasyMedium';
 
-export const tasks = [...misthalinEarlyTasks, ...misthalinExpansionTasks];
+export const tasks = [
+  ...misthalinEarlyTasks,
+  ...misthalinExpansionTasks,
+  ...misthalinRemainingEasyMediumTasks,
+];
 export const taskById = new Map(tasks.map((task) => [task.id, task]));
 
 export const taskMigrationSummary = {
