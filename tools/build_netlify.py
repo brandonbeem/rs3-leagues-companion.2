@@ -1,5 +1,7 @@
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "index.html"
@@ -15,14 +17,9 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner.js",
 ]
 
-html = SOURCE.read_text(encoding="utf-8")
+subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
 
-if not html.strip():
-    raise SystemExit("index.html is empty")
-if "RS3 Leagues Companion v21" not in html:
-    raise SystemExit("Expected the v21 standalone app in index.html")
-if "</head>" not in html or "</body>" not in html:
-    raise SystemExit("Could not find required HTML closing tags")
+html = SOURCE.read_text(encoding="utf-8")
 
 if STYLE_PATH not in html:
     html = html.replace("</head>", f'  <link rel="stylesheet" href="{STYLE_PATH}">\n</head>', 1)
@@ -33,8 +30,17 @@ if SCRIPT_PATHS[-1] not in html:
 
 if DIST.exists():
     shutil.rmtree(DIST)
-DIST.mkdir(parents=True)
+DIST.mkdir(parents=True, exist_ok=True)
 (DIST / "index.html").write_text(html, encoding="utf-8")
-shutil.copytree(DEPENDENCY_DIR, DIST / "features" / "dependencies")
 
-print("Built RS3 Leagues Companion v21 with generic region progression planner")
+feature_destination = DIST / "features" / "dependencies"
+feature_destination.parent.mkdir(parents=True, exist_ok=True)
+shutil.copytree(DEPENDENCY_DIR, feature_destination)
+
+for relative_path in [STYLE_PATH, *SCRIPT_PATHS]:
+    output = DIST / relative_path
+    if not output.exists() or output.stat().st_size == 0:
+        raise SystemExit(f"Build output missing required asset: {relative_path}")
+
+print(f"Built {DIST / 'index.html'}")
+print("Included progression-area hierarchy and generic Region Planner assets")
