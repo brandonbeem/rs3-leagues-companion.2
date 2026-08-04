@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { DependencyInspector } from './DependencyInspector';
+import { StarterKitPanel } from './StarterKitPanel';
 import type { ItemId, RegionId } from '../core/ids';
 import { shortestPath } from '../core/navigation/graph';
 import { usePlayer } from '../core/player/PlayerProvider';
@@ -45,7 +46,8 @@ export function TaskTracker() {
       case 'quest':
         return player.questIds.includes(requirement.key);
       case 'item':
-        return (player.inventory[requirement.key as ItemId] ?? 0) > 0;
+        return player.ownedAssetIds.includes(requirement.key as ItemId)
+          || (player.inventory[requirement.key as ItemId] ?? 0) > 0;
       case 'region':
         return isRegionUnlocked(player, requirement.key as RegionId);
       case 'unlock':
@@ -120,10 +122,10 @@ export function TaskTracker() {
     <section className="page-stack task-page">
       <header className="page-header compact-header">
         <div>
-          <p className="eyebrow">MILESTONE 2.3 · PHASE 1</p>
-          <h1>Tasks & Dependency Graphs</h1>
+          <p className="eyebrow">MILESTONE 2.3 · PHASE 2</p>
+          <h1>Tasks & Resource Planning</h1>
           <p>
-            Each migrated task can now explain its skills, items, prerequisite tasks, manual content, and known preparation actions as a dependency tree.
+            Reusable tools, banked items, and shared acquisition paths now feed the same task dependency system without adding extra clutter to each card.
           </p>
         </div>
         <div className="version-badge">{completedPoints} / {taskMigrationSummary.totalPoints} points</div>
@@ -138,12 +140,12 @@ export function TaskTracker() {
         <article className="metric-card">
           <span>Available now</span>
           <strong>{counts.available}</strong>
-          <small>Skill and access requirements currently met</small>
+          <small>Includes reusable tools already marked owned</small>
         </article>
         <article className="metric-card">
           <span>Setup needed</span>
           <strong>{counts['setup-needed']}</strong>
-          <small>Dependency graphs explain the missing preparation</small>
+          <small>Shared acquisition paths explain the preparation</small>
         </article>
         <article className="metric-card">
           <span>Completed</span>
@@ -151,6 +153,8 @@ export function TaskTracker() {
           <small>Saved in the shared local player state</small>
         </article>
       </div>
+
+      <StarterKitPanel />
 
       <div className="task-control-panel panel">
         <div className="task-filter-grid">
