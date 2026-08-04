@@ -28,7 +28,8 @@ script_tags = [
     *(f'  <script src="relics-v20-2/{name}"></script>' for name in RELIC_SCRIPTS),
     *(f'  <script src="features/{name}"></script>' for name in FEATURE_SCRIPTS),
 ]
-replacement = f'</script>\n{"\n".join(script_tags)}\n  <script data-source="js/features/relics-regions-build.js">'
+joined_tags = "\n".join(script_tags)
+replacement = f'</script>\n{joined_tags}\n  <script data-source="js/features/relics-regions-build.js">'
 html = html.replace(MARKER, replacement, 1)
 html = html.replace(
     "<title>RS3 Leagues Companion v20</title>",
