@@ -20,10 +20,18 @@ for path in REQUIRED:
     elif path.stat().st_size == 0:
         errors.append(f"Required file is empty: {path.relative_to(ROOT)}")
 
-index = (ROOT / "index.html").read_text(encoding="utf-8", errors="replace")
-for marker in ("RS3 Leagues Companion v21", "</head>", "</body>"):
-    if marker not in index:
-        errors.append(f"index.html is missing marker: {marker}")
+index_path = ROOT / "index.html"
+index = index_path.read_text(encoding="utf-8", errors="replace") if index_path.exists() else ""
+index_lower = index.lower()
+
+# Validate stable HTML structure instead of a brittle version-specific title.
+if index_path.exists() and index_path.stat().st_size < 100_000:
+    errors.append("index.html is unexpectedly small; expected the standalone companion app")
+for marker in ("<!doctype html", "<head", "</head>", "<body", "</body>"):
+    if marker not in index_lower:
+        errors.append(f"index.html is missing structural marker: {marker}")
+if "rs3 leagues companion" not in index_lower and "runescape 3" not in index_lower:
+    errors.append("index.html does not appear to be the RS3 Leagues Companion")
 
 registry = (ROOT / "features/dependencies/region-registry.js").read_text(encoding="utf-8")
 if "parentRegion" not in registry:
