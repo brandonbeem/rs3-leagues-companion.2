@@ -6,11 +6,13 @@ SOURCE = ROOT / "index.html"
 DIST = ROOT / "dist"
 DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
-STYLE_PATH = "features/dependencies/fort-integration.css"
+STYLE_PATH = "features/dependencies/region-planner.css"
 SCRIPT_PATHS = [
-    "features/dependencies/fort-forinthry-data.js",
     "features/dependencies/dependency-engine.js",
-    "features/dependencies/fort-integration.js",
+    "features/dependencies/region-registry.js",
+    "features/dependencies/fort-forinthry-data.js",
+    "features/dependencies/register-regions.js",
+    "features/dependencies/region-planner.js",
 ]
 
 html = SOURCE.read_text(encoding="utf-8")
@@ -35,4 +37,4 @@ DIST.mkdir(parents=True)
 (DIST / "index.html").write_text(html, encoding="utf-8")
 shutil.copytree(DEPENDENCY_DIR, DIST / "features" / "dependencies")
 
-print("Built RS3 Leagues Companion v21 with interactive Fort Forinthry test planner")
+print("Built RS3 Leagues Companion v21 with generic region progression planner")
