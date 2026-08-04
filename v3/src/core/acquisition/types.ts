@@ -38,6 +38,7 @@ export interface ItemAcquisitionResolution {
   inventoryQuantity: number;
   bankQuantity: number;
   persistentOwned: boolean;
+  toolBeltAvailable: boolean;
   satisfied: boolean;
   bestOption: AcquisitionCandidate | null;
   alternatives: AcquisitionCandidate[];
