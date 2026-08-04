@@ -1,4 +1,4 @@
-/* Generic region progression planner. Every registered region uses this same UI. */
+/* Generic region progression planner. Every registered progression area uses this same UI. */
 (function initRegionPlanner(global) {
   'use strict';
 
@@ -51,6 +51,16 @@
     render(regionId);
   }
 
+  function toggleCompletion(regionId, nodeId, checked) {
+    const all = readStored();
+    const current = all[regionId] || {};
+    const completed = new Set(current.completed || []);
+    if (checked) completed.add(nodeId); else completed.delete(nodeId);
+    all[regionId] = { ...current, completed: [...completed] };
+    saveStored(all);
+    render(regionId);
+  }
+
   function ensureRoot() {
     let root = document.getElementById(ROOT_ID);
     if (root) return root;
@@ -70,6 +80,25 @@
     if (item.type === 'skill') return `${item.skill} ${item.required} (current ${item.current})`;
     if (item.type === 'material') return `${item.shortfall} more ${item.name}`;
     return item.node?.name || item.id;
+  }
+
+  function achievementMarkup(region, engine, player) {
+    if (!global.RS3AchievementSetEngine || !region.achievementSets?.length) return '';
+    const checklist = new global.RS3AchievementSetEngine(engine, [region]);
+    const summaries = checklist.summaries(player);
+    const sets = summaries.map(summary => {
+      const items = summary.items.map(item => {
+        const state = item.completed ? 'Complete' : item.eligible ? 'Ready' : 'Blocked';
+        const detail = item.completed ? 'Completed' : item.eligible ? 'Ready now' : item.missing.map(missingText).join(', ');
+        return `<li class="rp-check-item"><label><input type="checkbox" data-achievement-id="${item.id}" ${item.completed ? 'checked' : ''}><span><strong>${item.node.name}</strong><small>${state} · ${detail}</small></span></label></li>`;
+      }).join('');
+      return `<article class="rp-achievement-set">
+        <div><strong>${summary.set.name}</strong><small>${summary.completedCount} / ${summary.total} complete · ${summary.percent}% · ${summary.readyCount} ready</small></div>
+        <progress max="100" value="${summary.percent}">${summary.percent}%</progress>
+        <ul>${items}</ul>
+      </article>`;
+    }).join('');
+    return `<section><h3>Achievement sets</h3>${sets}</section>`;
   }
 
   function render(selectedId = null) {
@@ -95,19 +124,23 @@
       <header><div><strong>${region.icon || '🗺️'} Region Progression</strong><small>${completedCount} / ${region.nodes.length} nodes complete</small></div><button data-close type="button">×</button></header>
       <label>Progression area<select data-region>${options}</select></label>
       <p>${region.description || ''}</p>
+      ${achievementMarkup(region, engine, player)}
       <section><h3>Ready now</h3><ol>${readyRows}</ol></section>
       <section><h3>Closest blocked</h3><ul>${blockedRows || '<li>Nothing blocked.</li>'}</ul></section>
-      <footer><button data-reset type="button">Reset this area</button><small>Future regions use this same planner and engine.</small></footer>`;
+      <footer><button data-reset type="button">Reset this area</button><small>Selected areas preserve their parent League region for dashboard highlighting.</small></footer>`;
 
     drawer.querySelector('[data-close]').onclick = () => { drawer.hidden = true; };
     drawer.querySelector('[data-region]').onchange = event => render(event.target.value);
+    drawer.querySelectorAll('[data-achievement-id]').forEach(input => {
+      input.addEventListener('change', event => toggleCompletion(region.id, event.target.dataset.achievementId, event.target.checked));
+    });
     drawer.querySelector('[data-reset]').onclick = () => {
       const all = readStored(); delete all[region.id]; saveStored(all); render(region.id);
     };
     global.dispatchEvent(new CustomEvent('rs3:region-recommendations', { detail: { region, player, ready, blocked } }));
   }
 
-  global.RS3RegionPlanner = { render, refresh: render, readPlayerState: playerState, updateRegion, storageKey: STORAGE_KEY };
+  global.RS3RegionPlanner = { render, refresh: render, readPlayerState: playerState, updateRegion, toggleCompletion, storageKey: STORAGE_KEY };
   ['rs3:profile-updated', 'rs3:tasks-updated', 'rs3:state-changed', 'rs3:region-registered', 'storage'].forEach(name => global.addEventListener(name, () => render()));
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureRoot, { once: true }); else ensureRoot();
 })(window);
