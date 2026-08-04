@@ -4,6 +4,7 @@ import { PlaceholderPage } from './components/PlaceholderPage';
 import { RegionPlanner } from './components/RegionPlanner';
 import { RelicPlanner } from './components/RelicPlanner';
 import { Sidebar } from './components/Sidebar';
+import { TaskTracker } from './components/TaskTracker';
 import { usePlayer } from './core/player/PlayerProvider';
 import { getUnlockedRegions } from './core/regions/regionEngine';
 import { regions } from './data/regions';
@@ -11,13 +12,7 @@ import { relics } from './data/relics';
 import { locationById } from './data/world';
 import type { PageId } from './types';
 
-const pageContent: Record<Exclude<PageId, 'dashboard' | 'relics' | 'regions' | 'build'>, { title: string; eyebrow: string; description: string; nextStep: string }> = {
-  tasks: {
-    title: 'Task Tracker',
-    eyebrow: 'TASK SCHEMA READY',
-    description: 'The canonical task, item, skill, location, and route-policy schema now exists.',
-    nextStep: 'Migrate the real V20 task records without inventing or duplicating requirements.',
-  },
+const pageContent: Record<Exclude<PageId, 'dashboard' | 'tasks' | 'relics' | 'regions' | 'build'>, { title: string; eyebrow: string; description: string; nextStep: string }> = {
   friends: {
     title: 'Friends',
     eyebrow: 'LOCAL-FIRST SOCIAL DATA',
@@ -28,7 +23,7 @@ const pageContent: Record<Exclude<PageId, 'dashboard' | 'relics' | 'regions' | '
     title: 'Route Planner',
     eyebrow: 'GRAPH ENGINE ONLINE',
     description: 'The first shortest-path graph now connects player location, region access, and provisional travel costs.',
-    nextStep: 'Attach verified tasks and requirement checks to location nodes.',
+    nextStep: 'Use the migrated early Misthalin tasks to generate the first real task route.',
   },
   strategy: {
     title: 'Strategy Center',
@@ -69,13 +64,9 @@ export default function App() {
       );
     }
 
-    if (activePage === 'relics') {
-      return <RelicPlanner selectedRelics={selectedRelics} onToggleRelic={toggleRelic} />;
-    }
-
-    if (activePage === 'regions') {
-      return <RegionPlanner />;
-    }
+    if (activePage === 'tasks') return <TaskTracker />;
+    if (activePage === 'relics') return <RelicPlanner selectedRelics={selectedRelics} onToggleRelic={toggleRelic} />;
+    if (activePage === 'regions') return <RegionPlanner />;
 
     if (activePage === 'build') {
       return (
@@ -84,7 +75,7 @@ export default function App() {
             <div>
               <p className="eyebrow">GLOBAL PLAYER STATE</p>
               <h1>My Build</h1>
-              <p>Relics, region unlocks, current location, and future task progress now share one local player record.</p>
+              <p>Relics, region unlocks, current location, and task progress share one local player record.</p>
             </div>
             <div className="version-badge">{selectedRelics.length} selected</div>
           </header>
@@ -99,19 +90,14 @@ export default function App() {
               <div className="empty-state">
                 <h2>No relics selected yet</h2>
                 <p>Open the Relic Planner and add relics to start building your plan.</p>
-                <button type="button" className="primary-button" onClick={() => setActivePage('relics')}>
-                  Open Relic Planner
-                </button>
+                <button type="button" className="primary-button" onClick={() => setActivePage('relics')}>Open Relic Planner</button>
               </div>
             ) : (
               <div className="build-grid">
                 {selectedRelicRecords.map((relic) => relic && (
                   <article key={relic.id} className="build-card">
                     <span className={`relic-icon category-${relic.category.toLowerCase()}`}>{relic.name.slice(0, 1)}</span>
-                    <div>
-                      <strong>{relic.name}</strong>
-                      <p>{relic.summary}</p>
-                    </div>
+                    <div><strong>{relic.name}</strong><p>{relic.summary}</p></div>
                     <button type="button" onClick={() => toggleRelic(relic.id)}>Remove</button>
                   </article>
                 ))}
