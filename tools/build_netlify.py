@@ -13,6 +13,7 @@ SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
     "features/dependencies/region-registry.js",
     "features/dependencies/fort-forinthry-data.js",
+    "features/dependencies/city-of-um-data.js",
     "features/dependencies/register-regions.js",
     "features/dependencies/region-planner.js",
 ]
@@ -43,4 +44,4 @@ for relative_path in [STYLE_PATH, *SCRIPT_PATHS]:
         raise SystemExit(f"Build output missing required asset: {relative_path}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included progression-area hierarchy and generic Region Planner assets")
+print("Included Misthalin progression areas, dashboard region mapping, and generic Region Planner assets")
