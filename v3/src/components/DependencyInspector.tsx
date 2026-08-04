@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import type { ItemId } from '../core/ids';
+import { resolveItemAcquisition } from '../core/acquisition/engine';
 import { resolveTaskDependencies } from '../core/dependency/engine';
 import type { DependencyNode, DependencyStatus } from '../core/dependency/types';
 import { usePlayer } from '../core/player/PlayerProvider';
 import type { TaskDefinition } from '../core/tasks/types';
+import { acquisitionOptionsByItem } from '../data/acquisition';
 import { itemById } from '../data/items';
 import { taskById } from '../data/tasks';
 
@@ -46,6 +48,10 @@ export function DependencyInspector({ task }: { task: TaskDefinition }) {
     () => resolveTaskDependencies(task, player, {
       taskById,
       itemName: (itemId) => itemById.get(itemId as ItemId)?.name ?? itemId.replace('item:', '').replaceAll('-', ' '),
+      resolveItem: (itemId, quantity) => {
+        const item = itemById.get(itemId);
+        return item ? resolveItemAcquisition(item, quantity, player, acquisitionOptionsByItem) : null;
+      },
     }),
     [player, task],
   );
@@ -62,11 +68,11 @@ export function DependencyInspector({ task }: { task: TaskDefinition }) {
     <details className="dependency-inspector">
       <summary>
         <span>
-          <strong>Dependency graph</strong>
+          <strong>Dependency details</strong>
           <small>{headline}</small>
         </span>
         <span className={resolution.canAutoResolve ? 'dependency-readiness ready' : 'dependency-readiness limited'}>
-          {resolution.canAutoResolve ? 'Auto-ready' : 'Limited'}
+          {resolution.canAutoResolve ? 'Ready' : 'Review'}
         </span>
       </summary>
 
