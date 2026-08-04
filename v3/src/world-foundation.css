@@ -1,0 +1,85 @@
+.verified-banner {
+  border-color: #277a4b;
+  color: #caffdc;
+  background: #0b2d1b;
+}
+
+.verified-banner span {
+  color: #a9ceb6;
+}
+
+.review-chip.verified {
+  color: #bcffd3;
+  border-color: #2f8254;
+  background: #0c2b1d;
+}
+
+.review-chip.needs-review {
+  color: #e8d98c;
+  border-color: #665616;
+  background: #302a0e;
+}
+
+.review-chip.placeholder {
+  color: #ffc0c0;
+  border-color: #6d3737;
+  background: #331919;
+}
+
+.location-title-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.location-title-line strong {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.location-review-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #8a7041;
+  box-shadow: 0 0 8px rgba(210, 175, 91, 0.35);
+}
+
+.location-review-dot.verified {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(80, 233, 142, 0.55);
+}
+
+.location-review-dot.placeholder {
+  background: #e96d6d;
+  box-shadow: 0 0 8px rgba(233, 109, 109, 0.45);
+}
+
+.source-count {
+  display: block;
+  margin-top: 4px;
+  color: #71907d;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.route-total small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.route-node em {
+  display: block;
+  margin-top: 4px;
+  color: #8cc9a5;
+  font-size: 10px;
+  font-style: normal;
+  text-transform: capitalize;
+}
