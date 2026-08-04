@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import type { LocationId, RegionId } from '../core/ids';
+import type { ItemId, LocationId, RegionId } from '../core/ids';
 import { shortestPath } from '../core/navigation/graph';
+import type { SkillName } from '../core/player/types';
 import { getUnlockedRegions, isRegionUnlocked } from '../core/regions/regionEngine';
+import type { TravelRequirement, VerificationStatus } from '../core/world/types';
 import { usePlayer } from '../core/player/PlayerProvider';
 import { regions } from '../data/regions';
 import { locationById, townById, worldData } from '../data/world';
@@ -12,6 +14,12 @@ function formatTravelTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
   return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+}
+
+function reviewLabel(status: VerificationStatus): string {
+  if (status === 'verified') return 'Verified';
+  if (status === 'placeholder') return 'Placeholder';
+  return 'Needs review';
 }
 
 export function RegionPlanner() {
@@ -25,20 +33,39 @@ export function RegionPlanner() {
   const currentLocation = player.currentLocationId ? locationById.get(player.currentLocationId) : null;
   const targetLocation = targetLocationId ? locationById.get(targetLocationId) : null;
   const unlockedRegions = getUnlockedRegions(player, regions);
+  const verifiedLocations = focusedLocations.filter((location) => location.reviewStatus === 'verified').length;
+  const reviewedEdges = worldData.edges.filter((edge) => edge.estimateStatus !== 'provisional').length;
+
+  function canUseRequirement(requirement: TravelRequirement): boolean {
+    switch (requirement.type) {
+      case 'skill':
+        return (player.skills[requirement.key as SkillName] ?? 1) >= (requirement.level ?? 1);
+      case 'quest':
+        return player.questIds.includes(requirement.key);
+      case 'item':
+        return (player.inventory[requirement.key as ItemId] ?? 0) > 0;
+      case 'region':
+        return isRegionUnlocked(player, requirement.key as RegionId);
+      case 'unlock':
+        return player.unlockIds.includes(requirement.key);
+      default:
+        return false;
+    }
+  }
 
   const routePreview = useMemo(() => {
     if (!player.currentLocationId || !targetLocationId) return null;
-    return shortestPath(worldData.edges, player.currentLocationId, targetLocationId);
-  }, [player.currentLocationId, targetLocationId]);
+    return shortestPath(worldData.edges, player.currentLocationId, targetLocationId, canUseRequirement);
+  }, [player, targetLocationId]);
 
   return (
     <section className="page-stack region-page">
       <header className="page-header compact-header">
         <div>
-          <p className="eyebrow">SPRINT 1 CORE ENGINE</p>
+          <p className="eyebrow">MILESTONE 2.1 · WORLD FOUNDATION</p>
           <h1>Region & World Planner</h1>
           <p>
-            Region unlocks, locations, and travel links now share one persistent player state and one world graph.
+            Misthalin now uses sourced RS3 locations, service restrictions, and requirement-aware travel links.
           </p>
         </div>
         <div className="version-badge">{unlockedRegions.length} region active</div>
@@ -51,19 +78,19 @@ export function RegionPlanner() {
           <small>Used as the starting node for route calculations</small>
         </article>
         <article className="metric-card">
-          <span>World nodes</span>
-          <strong>{worldData.locations.length}</strong>
-          <small>First Misthalin seed locations</small>
+          <span>Misthalin nodes</span>
+          <strong>{focusedLocations.length}</strong>
+          <small>{verifiedLocations} source-verified location records</small>
         </article>
         <article className="metric-card">
           <span>Travel links</span>
           <strong>{worldData.edges.length}</strong>
-          <small>All times are provisional until reviewed</small>
+          <small>{reviewedEdges} measured or verified times; topology is sourced</small>
         </article>
         <article className="metric-card">
-          <span>Migrated tasks</span>
-          <strong>0</strong>
-          <small>Schema is ready; V20 task records come next</small>
+          <span>Woodcutting</span>
+          <strong>{player.skills.Woodcutting ?? 1}</strong>
+          <small>Canoe links unlock at level 12</small>
         </article>
       </div>
 
@@ -118,9 +145,9 @@ export function RegionPlanner() {
             </button>
           </div>
 
-          <div className="review-banner">
-            <strong>Foundation data</strong>
-            <span>Location names are seeded for the engine; services and travel times still need RS3 Wiki review.</span>
+          <div className="review-banner verified-banner">
+            <strong>{verifiedLocations} of {focusedLocations.length} locations verified</strong>
+            <span>Walking and animation times remain provisional until measured in-game; restricted services are labelled.</span>
           </div>
 
           <div className="town-grid">
@@ -131,7 +158,7 @@ export function RegionPlanner() {
                     <strong>{town.name}</strong>
                     <small>{town.locationIds.length} location node{town.locationIds.length === 1 ? '' : 's'}</small>
                   </div>
-                  <span className="review-chip">Needs review</span>
+                  <span className={`review-chip ${town.reviewStatus}`}>{reviewLabel(town.reviewStatus)}</span>
                 </div>
                 <p>{town.description}</p>
                 <div className="location-list">
@@ -143,8 +170,15 @@ export function RegionPlanner() {
                     return (
                       <div className={isCurrent ? 'location-row current' : isTarget ? 'location-row target' : 'location-row'} key={location.id}>
                         <button type="button" className="location-focus" onClick={() => setTargetLocationId(location.id)}>
-                          <strong>{location.name}</strong>
+                          <span className="location-title-line">
+                            <strong>{location.name}</strong>
+                            <span className={`location-review-dot ${location.reviewStatus}`} title={reviewLabel(location.reviewStatus)} />
+                          </span>
                           <small>{location.services.length ? location.services.join(' · ') : 'No services recorded yet'}</small>
+                          <span className="source-count">
+                            {location.sources?.length ?? 0} source{(location.sources?.length ?? 0) === 1 ? '' : 's'}
+                            {location.accessNotes?.length ? ` · ${location.accessNotes.length} access note${location.accessNotes.length === 1 ? '' : 's'}` : ''}
+                          </span>
                         </button>
                         <button
                           type="button"
@@ -164,31 +198,34 @@ export function RegionPlanner() {
           <section className="route-preview-panel">
             <div className="panel-heading route-heading">
               <div>
-                <p className="eyebrow">LOCATION GRAPH TEST</p>
-                <h2>Shortest path preview</h2>
+                <p className="eyebrow">REQUIREMENT-AWARE GRAPH TEST</p>
+                <h2>Shortest accessible path</h2>
               </div>
               {targetLocation && <span className="version-badge muted">To {targetLocation.name}</span>}
             </div>
             {!targetLocation ? (
               <div className="route-empty">Select a location above to test the graph from your current location.</div>
             ) : !routePreview ? (
-              <div className="route-empty">No accessible path is currently recorded.</div>
+              <div className="route-empty">No accessible path is currently recorded with the player’s present requirements.</div>
             ) : (
               <div className="route-result">
                 <div className="route-total">
                   <span>Provisional travel estimate</span>
                   <strong>{formatTravelTime(routePreview.totalSeconds)}</strong>
+                  <small>{routePreview.edges.filter((edge) => edge.estimateStatus === 'provisional').length} provisional segment(s)</small>
                 </div>
                 <div className="route-node-list">
                   {routePreview.locationIds.map((locationId, index) => {
                     const location = locationById.get(locationId);
                     const town = location ? townById.get(location.townId) : null;
+                    const arrivalEdge = index > 0 ? routePreview.edges[index - 1] : null;
                     return (
                       <div className="route-node" key={`${locationId}-${index}`}>
                         <span>{index + 1}</span>
                         <div>
                           <strong>{location?.name ?? locationId}</strong>
                           <small>{town?.name ?? 'Unknown town'}</small>
+                          {arrivalEdge && <em>{arrivalEdge.mode} · {formatTravelTime(arrivalEdge.seconds)}</em>}
                         </div>
                       </div>
                     );
