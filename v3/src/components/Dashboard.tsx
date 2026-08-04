@@ -1,49 +1,52 @@
 interface DashboardProps {
   selectedRelics: number;
+  unlockedRegions: number;
+  currentLocationName: string;
 }
 
 const milestones = [
   ['Foundation', 'React + TypeScript + Vite project', 'complete'],
-  ['Relics', 'Typed data and modular planner', 'complete'],
-  ['Regions', 'Move region data and unlock state', 'next'],
-  ['Tasks', 'Move task database out of the legacy HTML', 'planned'],
-  ['Route Engine', 'Canonical eligibility and world-aware routing', 'planned'],
+  ['Player State', 'One persistent record shared by every page', 'complete'],
+  ['Region Engine', 'Unlock state and accessible-content selectors', 'complete'],
+  ['World Graph', 'Misthalin nodes and shortest-path routing', 'complete'],
+  ['Tasks', 'Migrate verified V20 task requirements and locations', 'next'],
+  ['Route Engine', 'Score efficient routes using requirements and travel', 'planned'],
 ];
 
-export function Dashboard({ selectedRelics }: DashboardProps) {
+export function Dashboard({ selectedRelics, unlockedRegions, currentLocationName }: DashboardProps) {
   return (
     <section className="page-stack">
       <header className="page-header">
         <div>
-          <p className="eyebrow">MODULAR FOUNDATION</p>
+          <p className="eyebrow">SPRINT 1 CORE ENGINE</p>
           <h1>RS3 Leagues Companion V3</h1>
           <p>
-            The app is being rebuilt as small, testable modules while the stable V20 site stays online.
+            Player state, region access, stable IDs, task schemas, and the first world-location graph now work together.
           </p>
         </div>
-        <div className="version-badge">V3 preview</div>
+        <div className="version-badge">Sprint 1 preview</div>
       </header>
 
       <div className="metric-grid">
         <article className="metric-card">
-          <span>Relics in data layer</span>
-          <strong>15</strong>
-          <small>Including the five newest reveals</small>
-        </article>
-        <article className="metric-card">
           <span>Selected relics</span>
           <strong>{selectedRelics}</strong>
-          <small>Saved locally in this browser</small>
+          <small>Stored inside the shared player record</small>
+        </article>
+        <article className="metric-card">
+          <span>Unlocked regions</span>
+          <strong>{unlockedRegions}</strong>
+          <small>Misthalin is protected as a starter region</small>
+        </article>
+        <article className="metric-card">
+          <span>Current location</span>
+          <strong className="metric-name">{currentLocationName}</strong>
+          <small>The route graph now has a real starting node</small>
         </article>
         <article className="metric-card">
           <span>Required paid services</span>
           <strong>$0</strong>
-          <small>No paid database or hosting required</small>
-        </article>
-        <article className="metric-card">
-          <span>Legacy app status</span>
-          <strong>Safe</strong>
-          <small>V20 remains on the main branch</small>
+          <small>State remains local-first and Netlify-hosted</small>
         </article>
       </div>
 
@@ -51,8 +54,8 @@ export function Dashboard({ selectedRelics }: DashboardProps) {
         <article className="panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">MIGRATION ROADMAP</p>
-              <h2>One system at a time</h2>
+              <p className="eyebrow">SPRINT 1 STATUS</p>
+              <h2>Core systems before content volume</h2>
             </div>
           </div>
           <div className="milestone-list">
@@ -70,13 +73,13 @@ export function Dashboard({ selectedRelics }: DashboardProps) {
         </article>
 
         <article className="panel architecture-panel">
-          <p className="eyebrow">NEW ARCHITECTURE</p>
-          <h2>Built to grow</h2>
+          <p className="eyebrow">ENGINE FLOW</p>
+          <h2>World → Player → Task</h2>
           <div className="architecture-list">
-            <div><strong>Components</strong><span>Each tab lives in its own file.</span></div>
-            <div><strong>Typed data</strong><span>Relics, tasks, and regions are separate from UI code.</span></div>
-            <div><strong>Local-first</strong><span>Build choices work without a paid server.</span></div>
-            <div><strong>Preview-safe</strong><span>Every branch gets a Netlify test URL before merging.</span></div>
+            <div><strong>Stable IDs</strong><span>Regions, towns, locations, tasks, and items no longer depend on display text.</span></div>
+            <div><strong>Player Store</strong><span>Relics, regions, skills, location, tasks, inventory, and preferences share one source.</span></div>
+            <div><strong>Region Engine</strong><span>Locked-region content can be filtered consistently across every future page.</span></div>
+            <div><strong>Location Graph</strong><span>Routes can compare travel cost instead of sorting by task points.</span></div>
           </div>
         </article>
       </div>
