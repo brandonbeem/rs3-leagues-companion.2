@@ -7,7 +7,7 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react';
-import type { RegionId } from '../ids';
+import type { ItemId, RegionId } from '../ids';
 import { normalizeStarterRegions } from '../regions/regionEngine';
 import { regionById, regions } from '../../data/regions';
 import { MISHTHALIN_ID, misthalinLocationIds } from '../../data/world/misthalin';
@@ -50,7 +50,7 @@ const startingSkills: Partial<Record<SkillName, number>> = {
 
 export function createDefaultPlayerState(): PlayerState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     skills: startingSkills,
     regionUnlocks: {
       [MISHTHALIN_ID]: { unlocked: true, unlockedAtPoints: 0 },
@@ -59,6 +59,8 @@ export function createDefaultPlayerState(): PlayerState {
     completedTaskIds: [],
     currentLocationId: misthalinLocationIds.lumbridgeCourtyard,
     inventory: {},
+    bankInventory: {},
+    ownedAssetIds: [],
     unlockedTeleportIds: [],
     questIds: [],
     unlockIds: [],
@@ -83,8 +85,12 @@ function loadPlayerState(): PlayerState {
         {
           ...fallback,
           ...parsed,
+          schemaVersion: 2,
           skills: { ...fallback.skills, ...parsed.skills },
           regionUnlocks: { ...fallback.regionUnlocks, ...parsed.regionUnlocks },
+          inventory: { ...fallback.inventory, ...parsed.inventory },
+          bankInventory: { ...fallback.bankInventory, ...parsed.bankInventory },
+          ownedAssetIds: parsed.ownedAssetIds ?? fallback.ownedAssetIds,
           preferences: { ...fallback.preferences, ...parsed.preferences },
         },
         regions,
@@ -101,6 +107,18 @@ function loadPlayerState(): PlayerState {
   }
 
   return fallback;
+}
+
+function setQuantity(
+  collection: Partial<Record<ItemId, number>>,
+  itemId: ItemId,
+  quantity: number,
+): Partial<Record<ItemId, number>> {
+  const next = { ...collection };
+  const normalized = Math.max(0, Math.floor(quantity));
+  if (normalized === 0) delete next[itemId];
+  else next[itemId] = normalized;
+  return next;
 }
 
 function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
@@ -149,6 +167,21 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
 
     case 'set-location':
       return { ...state, currentLocationId: action.locationId };
+
+    case 'set-item-quantity':
+      return action.storage === 'inventory'
+        ? { ...state, inventory: setQuantity(state.inventory, action.itemId, action.quantity) }
+        : { ...state, bankInventory: setQuantity(state.bankInventory, action.itemId, action.quantity) };
+
+    case 'set-asset-owned':
+      return {
+        ...state,
+        ownedAssetIds: action.owned
+          ? state.ownedAssetIds.includes(action.itemId)
+            ? state.ownedAssetIds
+            : [...state.ownedAssetIds, action.itemId]
+          : state.ownedAssetIds.filter((itemId) => itemId !== action.itemId),
+      };
 
     case 'set-preference':
       return {
