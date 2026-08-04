@@ -1,4 +1,5 @@
 import type { ItemId } from '../ids';
+import { resolveItemAccess } from '../items/itemAccess';
 import type { PlayerState } from '../player/types';
 import type { TaskDefinition } from '../tasks/types';
 import type { ItemDefinition } from '../../data/items';
@@ -52,18 +53,18 @@ export function resolveItemAcquisition(
   player: PlayerState,
   library: AcquisitionLibrary,
 ): ItemAcquisitionResolution {
-  const inventoryQuantity = player.inventory[item.id] ?? 0;
-  const bankQuantity = player.bankInventory[item.id] ?? 0;
-  const persistentOwned = item.persistent && player.ownedAssetIds.includes(item.id);
-  const satisfied = persistentOwned || inventoryQuantity >= quantity;
+  const access = resolveItemAccess(player, item.id, quantity);
+  const persistentOwned = access.source === 'owned-asset';
+  const toolBeltAvailable = access.source === 'starting-tool-belt' || access.source === 'tool-belt';
 
-  if (satisfied) {
+  if (access.satisfied) {
     return {
       itemId: item.id,
       quantity,
-      inventoryQuantity,
-      bankQuantity,
+      inventoryQuantity: access.carriedQuantity,
+      bankQuantity: access.bankQuantity,
       persistentOwned,
+      toolBeltAvailable,
       satisfied: true,
       bestOption: null,
       alternatives: [],
@@ -71,15 +72,16 @@ export function resolveItemAcquisition(
   }
 
   const candidates = (library.get(item.id) ?? []).map(asCandidate);
-  if (bankQuantity >= quantity) candidates.push(bankCandidate(item.id));
+  if (access.bankQuantity >= quantity) candidates.push(bankCandidate(item.id));
   candidates.sort((a, b) => a.score - b.score || a.label.localeCompare(b.label));
 
   return {
     itemId: item.id,
     quantity,
-    inventoryQuantity,
-    bankQuantity,
+    inventoryQuantity: access.carriedQuantity,
+    bankQuantity: access.bankQuantity,
     persistentOwned,
+    toolBeltAvailable,
     satisfied: false,
     bestOption: candidates[0] ?? null,
     alternatives: candidates.slice(1),
@@ -94,12 +96,7 @@ export function buildResourceOpportunities(
   limit = 3,
 ): ResourceOpportunity[] {
   return items
-    .filter((item) =>
-      item.persistent
-      && item.starterKitEligible
-      && !player.ownedAssetIds.includes(item.id)
-      && (player.inventory[item.id] ?? 0) < 1,
-    )
+    .filter((item) => item.persistent && item.starterKitEligible)
     .map((item) => {
       const opportunityTasks = tasks.filter((task) =>
         !player.completedTaskIds.includes(task.id)
@@ -119,8 +116,7 @@ export function buildResourceOpportunities(
         ? Math.min(90, Math.round(resolution.bestOption.score / 20))
         : 100;
       const score = opportunityTasks.length * 100 + 35 - acquisitionPenalty;
-
-      return {
+      const opportunity: ResourceOpportunity = {
         itemId: item.id,
         itemName: item.name,
         opportunityTaskIds: opportunityTasks.map((task) => task.id),
@@ -128,8 +124,11 @@ export function buildResourceOpportunities(
         score,
         bestOption: resolution.bestOption,
       };
+
+      return { opportunity, satisfied: resolution.satisfied };
     })
-    .filter((opportunity) => opportunity.opportunityCount > 0)
+    .filter(({ opportunity, satisfied }) => opportunity.opportunityCount > 0 && !satisfied)
+    .map(({ opportunity }) => opportunity)
     .sort((a, b) => b.score - a.score || b.opportunityCount - a.opportunityCount || a.itemName.localeCompare(b.itemName))
     .slice(0, limit);
 }
