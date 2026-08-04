@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Fort Dependency Engine Tests</title></head>
+<body>
+<pre id="results">Running…</pre>
+<script src="fort-forinthry-data.js"></script>
+<script src="dependency-engine.js"></script>
+<script>
+(() => {
+  const output = [];
+  const assert = (condition, message) => {
+    if (!condition) throw new Error(message);
+    output.push(`PASS: ${message}`);
+  };
+
+  try {
+    const engine = window.RS3Dependencies.createFortEngine();
+    assert(engine.get('fort-workshop-1').name === 'Workshop', 'loads Fort nodes');
+
+    const newPlayer = { completed: [], quests: [], levels: { Construction: 1, Necromancy: 1 }, inventory: {} };
+    const workshopLocked = engine.evaluate('fort-workshop-1', newPlayer);
+    assert(!workshopLocked.eligible, 'Workshop I is blocked before New Foundations');
+    assert(workshopLocked.missing.some(item => item.type === 'quest'), 'reports missing quest');
+
+    const questStarted = {
+      completed: ['quest-new-foundations'], quests: ['quest-new-foundations'],
+      levels: { Construction: 10, Necromancy: 1 },
+      inventory: { 'wooden-frame': 8, 'stone-wall-segment': 6, 'oak-frame': 20 }
+    };
+    assert(engine.evaluate('fort-workshop-1', questStarted).eligible, 'Workshop I becomes eligible');
+    assert(engine.evaluate('fort-town-hall-1', questStarted).eligible, 'Town Hall I becomes eligible');
+
+    const noMaterials = {
+      completed: ['quest-new-foundations'], quests: ['quest-new-foundations'],
+      levels: { Construction: 99, Necromancy: 99 }, inventory: {}
+    };
+    const shortfalls = engine.materialShortfalls('fort-chapel-1', noMaterials);
+    assert(shortfalls.length === 2, 'reports both frame and stone shortfalls');
+
+    const progressed = {
+      completed: [
+        'quest-new-foundations', 'fort-workshop-1', 'fort-town-hall-1',
+        'fort-chapel-1', 'fort-command-centre-1'
+      ],
+      quests: ['quest-new-foundations'], levels: { Construction: 50, Necromancy: 1 }, inventory: {}
+    };
+    const next = engine.nextSteps(progressed, { limit: 10 });
+    assert(next.some(item => item.id === 'quest-murder-on-the-border'), 'recommends Murder on the Border after starter fort');
+
+    document.getElementById('results').textContent = output.join('\n');
+  } catch (error) {
+    document.getElementById('results').textContent = `${output.join('\n')}\nFAIL: ${error.message}`;
+    throw error;
+  }
+})();
+</script>
+</body>
+</html>

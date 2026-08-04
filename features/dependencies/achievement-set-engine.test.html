@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Achievement Set Engine Tests</title>
+<script src="dependency-engine.js"></script>
+<script src="achievement-set-engine.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const dataset = {
+      nodes: [
+        { id: 'a1', type: 'achievement', name: 'First', requirements: {} },
+        { id: 'a2', type: 'achievement', name: 'Second', requirements: { skills: { Magic: 20 } } },
+        { id: 'a3', type: 'achievement', name: 'Third', requirements: { nodes: ['a2'] } }
+      ],
+      achievementSets: [{ id: 'set-1', name: 'Test set', achievementIds: ['a1', 'a2', 'a3'] }]
+    };
+    const dependencies = new RS3DependencyEngine([dataset]);
+    const checklists = new RS3AchievementSetEngine(dependencies, [dataset]);
+    const results = [];
+    const test = (name, condition) => results.push({ name, pass: Boolean(condition) });
+
+    let summary = checklists.evaluate('set-1', { completed: [], levels: { Magic: 1 } });
+    test('counts all items', summary.total === 3);
+    test('first item ready', summary.readyCount === 1);
+    test('two items blocked', summary.blocked.length === 2);
+    test('starts at zero percent', summary.percent === 0);
+
+    summary = checklists.evaluate('set-1', { completed: ['a1'], levels: { Magic: 20 } });
+    test('tracks completed item', summary.completedCount === 1);
+    test('second item becomes ready', summary.next.some(item => item.id === 'a2'));
+    test('percentage rounds correctly', summary.percent === 33);
+
+    summary = checklists.evaluate('set-1', { completed: ['a1', 'a2', 'a3'], levels: { Magic: 20 } });
+    test('full set completes', summary.completed === true);
+    test('full set reaches 100 percent', summary.percent === 100);
+
+    document.body.innerHTML = `<h1>${results.every(item => item.pass) ? 'PASS' : 'FAIL'}</h1><ul>${results.map(item => `<li>${item.pass ? '✓' : '✗'} ${item.name}</li>`).join('')}</ul>`;
+    if (!results.every(item => item.pass)) throw new Error('Achievement set tests failed');
+  });
+</script>
