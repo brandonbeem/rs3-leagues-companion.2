@@ -6,6 +6,7 @@ export type LocationId = EntityId<'location'>;
 export type TaskId = EntityId<'task'>;
 export type ItemId = EntityId<'item'>;
 export type TeleportId = EntityId<'teleport'>;
+export type ClusterId = EntityId<'cluster'>;
 
 export const ids = {
   region: (slug: string) => `region:${slug}` as RegionId,
@@ -14,4 +15,5 @@ export const ids = {
   task: (slug: string) => `task:${slug}` as TaskId,
   item: (slug: string) => `item:${slug}` as ItemId,
   teleport: (slug: string) => `teleport:${slug}` as TeleportId,
+  cluster: (slug: string) => `cluster:${slug}` as ClusterId,
 };
