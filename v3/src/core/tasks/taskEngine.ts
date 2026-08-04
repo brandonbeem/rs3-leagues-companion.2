@@ -1,11 +1,11 @@
 import type { RegionId } from '../ids';
 import type { PlayerState } from '../player/types';
 import { isRegionUnlocked } from '../regions/regionEngine';
+import { isOptionalSideContent } from './manualContent';
 import type { TaskDefinition, TaskEligibility } from './types';
 
 export function isTaskAllowedInRecommendedRoutes(task: TaskDefinition, player: PlayerState): boolean {
-  if (task.category === 'quest' && player.preferences.avoidQuestTasks) return false;
-  return true;
+  return !isOptionalSideContent(task, player);
 }
 
 export function getTaskEligibility(task: TaskDefinition, player: PlayerState): TaskEligibility {
