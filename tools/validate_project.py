@@ -63,10 +63,10 @@ for expected in ("class AchievementSetEngine", "completedCount", "readyCount", "
     if expected not in achievement_engine:
         errors.append(f"Achievement checklist engine is missing: {expected}")
 
-region_explorer = (ROOT / "features/dependencies/region-explorer-enhancement.js").read_text(encoding="utf-8")
-for expected in ("Region Explorer", "Search regions", "rs3:league-region-selected", "Plan with this region"):
-    if expected not in region_explorer:
-        errors.append(f"Region Explorer enhancement is missing: {expected}")
+region_planner = (ROOT / "features/dependencies/region-explorer-enhancement.js").read_text(encoding="utf-8")
+for expected in ("Region Planner", "Search regions", "rs3:league-region-selected", "Plan with this region", "Elven Lands", "Anachronia"):
+    if expected not in region_planner:
+        errors.append(f"Region Planner enhancement is missing: {expected}")
 
 if errors:
     print("Project validation failed:")
