@@ -1,4 +1,5 @@
 import type { RegionId } from '../ids';
+import { resolveItemAccess } from '../items/itemAccess';
 import type { PlayerState } from '../player/types';
 import { isRegionUnlocked } from '../regions/regionEngine';
 import { isOptionalSideContent } from './manualContent';
@@ -13,11 +14,9 @@ export function getTaskEligibility(task: TaskDefinition, player: PlayerState): T
   const missingSkills = task.requirements.skills.filter(
     (requirement) => (player.skills[requirement.skill] ?? 1) < requirement.level,
   );
-  const missingItems = task.requirements.items.filter((requirement) => {
-    const carried = player.inventory[requirement.itemId] ?? 0;
-    const persistentOwned = player.ownedAssetIds.includes(requirement.itemId);
-    return !persistentOwned && carried < requirement.quantity;
-  });
+  const missingItems = task.requirements.items.filter(
+    (requirement) => !resolveItemAccess(player, requirement.itemId, requirement.quantity).satisfied,
+  );
   const missingQuests = task.requirements.quests.filter((quest) => !player.questIds.includes(quest));
   const missingUnlocks = task.requirements.unlocks.filter((unlock) => !player.unlockIds.includes(unlock));
   const missingTasks = task.requirements.completedTaskIds.filter(
