@@ -7,6 +7,7 @@ import './engine.css';
 import './world-foundation.css';
 import './taskTracker.css';
 import './dependencyEngine.css';
+import './acquisition.css';
 
 const rootElement = document.getElementById('root');
 
