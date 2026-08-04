@@ -13,6 +13,8 @@ REQUIRED = [
     ROOT / "features/dependencies/register-regions.js",
     ROOT / "features/dependencies/region-planner.js",
     ROOT / "features/dependencies/region-planner.css",
+    ROOT / "features/dependencies/region-explorer-enhancement.js",
+    ROOT / "features/dependencies/region-explorer-enhancement.css",
 ]
 
 errors = []
@@ -62,6 +64,11 @@ achievement_engine = (ROOT / "features/dependencies/achievement-set-engine.js").
 for expected in ("class AchievementSetEngine", "completedCount", "readyCount", "percent"):
     if expected not in achievement_engine:
         errors.append(f"Achievement checklist engine is missing: {expected}")
+
+region_explorer = (ROOT / "features/dependencies/region-explorer-enhancement.js").read_text(encoding="utf-8")
+for expected in ("Region Explorer", "Search regions", "rs3:league-region-selected", "Plan with this region"):
+    if expected not in region_explorer:
+        errors.append(f"Region Explorer enhancement is missing: {expected}")
 
 if errors:
     print("Project validation failed:")
