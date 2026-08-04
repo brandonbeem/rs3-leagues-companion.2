@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DependencyInspector } from './DependencyInspector';
 import type { ItemId, RegionId } from '../core/ids';
 import { shortestPath } from '../core/navigation/graph';
 import { usePlayer } from '../core/player/PlayerProvider';
@@ -119,10 +120,10 @@ export function TaskTracker() {
     <section className="page-stack task-page">
       <header className="page-header compact-header">
         <div>
-          <p className="eyebrow">MILESTONE 2.2 · BATCH A</p>
-          <h1>Early Misthalin Tasks</h1>
+          <p className="eyebrow">MILESTONE 2.3 · PHASE 1</p>
+          <h1>Tasks & Dependency Graphs</h1>
           <p>
-            Real V20 Catalyst tasks are now linked to player levels, setup items, completion state, and sourced world locations.
+            Each migrated task can now explain its skills, items, prerequisite tasks, manual content, and known preparation actions as a dependency tree.
           </p>
         </div>
         <div className="version-badge">{completedPoints} / {taskMigrationSummary.totalPoints} points</div>
@@ -142,7 +143,7 @@ export function TaskTracker() {
         <article className="metric-card">
           <span>Setup needed</span>
           <strong>{counts['setup-needed']}</strong>
-          <small>Visible preparation work, not falsely labelled blocked</small>
+          <small>Dependency graphs explain the missing preparation</small>
         </article>
         <article className="metric-card">
           <span>Completed</span>
@@ -195,7 +196,7 @@ export function TaskTracker() {
             onChange={(event) => dispatch({ type: 'set-preference', key: 'avoidQuestTasks', value: !event.target.checked })}
           />
           <span>Include quest tasks</span>
-          <small>{questTaskCount} optional quest task{questTaskCount === 1 ? '' : 's'}; excluded from recommended routes by default</small>
+          <small>{questTaskCount} optional quest task{questTaskCount === 1 ? '' : 's'}; never inserted as automatic prerequisites</small>
         </label>
       </div>
 
@@ -267,6 +268,8 @@ export function TaskTracker() {
                   {eligibility.warnings.map((warning) => <span key={warning}>{warning}</span>)}
                 </div>
               )}
+
+              <DependencyInspector task={task} />
 
               {(setupSteps.length > 0 || actionSteps.length > 0) && (
                 <details className="task-acquisition">
