@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -24,6 +25,20 @@ SCRIPT_PATHS = [
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
 
 html = SOURCE.read_text(encoding="utf-8")
+
+# Remove stale overlay tags that may already exist in the standalone source.
+html = re.sub(
+    r'\s*<link\b[^>]*href=["\']features/dependencies/region-planner\.css["\'][^>]*>\s*',
+    "\n",
+    html,
+    flags=re.IGNORECASE,
+)
+html = re.sub(
+    r'\s*<script\b[^>]*src=["\']features/dependencies/region-planner\.js["\'][^>]*>\s*</script>\s*',
+    "\n",
+    html,
+    flags=re.IGNORECASE,
+)
 
 for style_path in STYLE_PATHS:
     if style_path not in html:
