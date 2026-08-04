@@ -4,42 +4,38 @@ import shutil
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "index.html"
 DIST = ROOT / "dist"
-PATCH_DIR = ROOT / "relics-v20-2"
+DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
-MARKER = '</script>\n  <script data-source="js/features/relics-regions-build.js">'
-SCRIPTS = [
-    "devout.js",
-    "icyenic-faith.js",
-    "rejuvenated.js",
-    "perkfection.js",
-    "animal-wrangler.js",
-    "finalize.js",
+SCRIPT_PATHS = [
+    "features/dependencies/dependency-engine.js",
+    "features/dependencies/fort-forinthry-data.js",
 ]
 
 html = SOURCE.read_text(encoding="utf-8")
-if MARKER not in html:
-    raise SystemExit("Could not find the relic feature script marker in index.html")
 
-tags = "\n".join(
-    f'  <script src="relics-v20-2/{name}"></script>'
-    for name in SCRIPTS
+if not html.strip():
+    raise SystemExit("index.html is empty")
+
+if "RS3 Leagues Companion v21" not in html:
+    raise SystemExit("Expected the v21 standalone app in index.html")
+
+if "</body>" not in html:
+    raise SystemExit("Could not find </body> in index.html")
+
+script_tags = "\n".join(
+    f'  <script src="{path}"></script>'
+    for path in SCRIPT_PATHS
 )
-replacement = f'</script>\n{tags}\n  <script data-source="js/features/relics-regions-build.js">'
-html = html.replace(MARKER, replacement, 1)
-html = html.replace(
-    "<title>RS3 Leagues Companion v20</title>",
-    "<title>RS3 Leagues Companion v20.2</title>",
-    1,
-)
-html = html.replace(
-    '<meta name="application-version" content="20.0.0">',
-    '<meta name="application-version" content="20.2.0">',
-    1,
-)
+
+# Keep the source standalone file untouched and inject modular features only
+# into the Netlify build output. Avoid duplicate injection on repeated builds.
+if SCRIPT_PATHS[0] not in html:
+    html = html.replace("</body>", f"{script_tags}\n</body>", 1)
 
 if DIST.exists():
     shutil.rmtree(DIST)
 DIST.mkdir(parents=True)
 (DIST / "index.html").write_text(html, encoding="utf-8")
-shutil.copytree(PATCH_DIR, DIST / "relics-v20-2")
-print("Built V20.2 Netlify output in dist/")
+shutil.copytree(DEPENDENCY_DIR, DIST / "features" / "dependencies")
+
+print("Built RS3 Leagues Companion v21 with Fort Forinthry dependency modules")
