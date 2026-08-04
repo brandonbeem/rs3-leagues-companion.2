@@ -28,6 +28,16 @@ export const itemIds = {
   lobsterPot: ids.item('lobster-pot'),
   pickaxe: ids.item('usable-pickaxe'),
   charmedSack: ids.item('charmed-sack'),
+  bucket: ids.item('bucket'),
+  rawRatMeat: ids.item('raw-rat-meat'),
+  ironOre: ids.item('iron-ore'),
+  coal: ids.item('coal'),
+  runeEssence: ids.item('rune-essence'),
+  waterTalisman: ids.item('water-talisman-or-equivalent'),
+  earthTalisman: ids.item('earth-talisman-or-equivalent'),
+  ballOfWool: ids.item('ball-of-wool'),
+  cupOfTea: ids.item('cup-of-tea'),
+  bones: ids.item('bones'),
 } as const;
 
 export const items: ItemDefinition[] = [
@@ -101,6 +111,26 @@ export const items: ItemDefinition[] = [
     toolBeltEligible: false,
     notes: 'Used at the Nexus in Lumbridge Swamp and kept outside automatic starter-kit planning.',
   },
+  ...[
+    [itemIds.bucket, 'Bucket', 'material'],
+    [itemIds.rawRatMeat, 'Raw rat meat', 'consumable'],
+    [itemIds.ironOre, 'Iron ore', 'material'],
+    [itemIds.coal, 'Coal', 'material'],
+    [itemIds.runeEssence, 'Rune essence', 'material'],
+    [itemIds.waterTalisman, 'Water talisman or equivalent', 'equipment'],
+    [itemIds.earthTalisman, 'Earth talisman or equivalent', 'equipment'],
+    [itemIds.ballOfWool, 'Ball of wool', 'material'],
+    [itemIds.cupOfTea, 'Cup of tea', 'consumable'],
+    [itemIds.bones, 'Bones', 'consumable'],
+  ].map(([id, name, kind]) => ({
+    id: id as ItemId,
+    name: name as string,
+    kind: kind as ItemKind,
+    availability: kind === 'consumable' ? 'consumable' as const : 'inventory-or-bank' as const,
+    persistent: false,
+    starterKitEligible: false,
+    toolBeltEligible: false,
+  })),
 ];
 
 export const itemById = new Map(items.map((item) => [item.id, item]));
