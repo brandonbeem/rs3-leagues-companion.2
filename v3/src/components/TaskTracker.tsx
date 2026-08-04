@@ -4,7 +4,12 @@ import { shortestPath } from '../core/navigation/graph';
 import { usePlayer } from '../core/player/PlayerProvider';
 import type { SkillName } from '../core/player/types';
 import { isRegionUnlocked } from '../core/regions/regionEngine';
-import { getTaskEligibility, taskBlockers, taskStatusLabel } from '../core/tasks/taskEngine';
+import {
+  getTaskEligibility,
+  isTaskAllowedInRecommendedRoutes,
+  taskBlockers,
+  taskStatusLabel,
+} from '../core/tasks/taskEngine';
 import type { TaskCategory, TaskEligibility } from '../core/tasks/types';
 import type { TravelRequirement } from '../core/world/types';
 import { itemById } from '../data/items';
@@ -67,10 +72,16 @@ export function TaskTracker() {
     [],
   );
 
+  const questTaskCount = useMemo(
+    () => tasks.filter((task) => task.category === 'quest').length,
+    [],
+  );
+
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
     return taskRows
       .filter(({ task, eligibility, location }) => {
+        if (!isTaskAllowedInRecommendedRoutes(task, player)) return false;
         if (player.preferences.hideBlockedTasks && eligibility.status === 'blocked') return false;
         if (statusFilter !== 'all' && eligibility.status !== statusFilter) return false;
         if (categoryFilter !== 'all' && task.category !== categoryFilter) return false;
@@ -94,7 +105,7 @@ export function TaskTracker() {
         if (aTravel !== bTravel) return aTravel - bTravel;
         return a.task.legacyTaskId - b.task.legacyTaskId;
       });
-  }, [categoryFilter, player.preferences.hideBlockedTasks, search, statusFilter, taskRows]);
+  }, [categoryFilter, player, search, statusFilter, taskRows]);
 
   const counts = taskRows.reduce(
     (summary, row) => ({ ...summary, [row.eligibility.status]: summary[row.eligibility.status] + 1 }),
@@ -176,6 +187,15 @@ export function TaskTracker() {
           />
           <span>Show blocked tasks</span>
           <small>{counts.blocked} currently hidden when this is off</small>
+        </label>
+        <label className="blocked-task-toggle">
+          <input
+            type="checkbox"
+            checked={!player.preferences.avoidQuestTasks}
+            onChange={(event) => dispatch({ type: 'set-preference', key: 'avoidQuestTasks', value: !event.target.checked })}
+          />
+          <span>Include quest tasks</span>
+          <small>{questTaskCount} optional quest task{questTaskCount === 1 ? '' : 's'}; excluded from recommended routes by default</small>
         </label>
       </div>
 
@@ -284,7 +304,7 @@ export function TaskTracker() {
       {visibleTasks.length === 0 && (
         <div className="panel task-empty-state">
           <h2>No tasks match these filters</h2>
-          <p>Clear the search or enable blocked tasks to inspect the full migrated batch.</p>
+          <p>Clear the search or enable optional and blocked tasks to inspect the full migrated batch.</p>
         </div>
       )}
     </section>
