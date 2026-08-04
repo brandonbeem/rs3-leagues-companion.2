@@ -156,7 +156,7 @@ function buildTaskNode(
     const carried = player.inventory[requirement.itemId] ?? 0;
     const banked = player.bankInventory[requirement.itemId] ?? 0;
     const persistentOwned = player.ownedAssetIds.includes(requirement.itemId);
-    const satisfied = sharedResolution?.satisfied ?? persistentOwned || carried >= requirement.quantity;
+    const satisfied = sharedResolution?.satisfied ?? (persistentOwned || carried >= requirement.quantity);
     const matchingSteps = task.acquisitionSteps
       .map((step, index) => ({ step, index }))
       .filter(({ step }) => step.type === 'obtain-item' && step.itemId === requirement.itemId)
