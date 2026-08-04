@@ -6,6 +6,7 @@ import './styles.css';
 import './engine.css';
 import './world-foundation.css';
 import './taskTracker.css';
+import './dependencyEngine.css';
 
 const rootElement = document.getElementById('root');
 
