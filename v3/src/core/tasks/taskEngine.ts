@@ -13,9 +13,11 @@ export function getTaskEligibility(task: TaskDefinition, player: PlayerState): T
   const missingSkills = task.requirements.skills.filter(
     (requirement) => (player.skills[requirement.skill] ?? 1) < requirement.level,
   );
-  const missingItems = task.requirements.items.filter(
-    (requirement) => (player.inventory[requirement.itemId] ?? 0) < requirement.quantity,
-  );
+  const missingItems = task.requirements.items.filter((requirement) => {
+    const carried = player.inventory[requirement.itemId] ?? 0;
+    const persistentOwned = player.ownedAssetIds.includes(requirement.itemId);
+    return !persistentOwned && carried < requirement.quantity;
+  });
   const missingQuests = task.requirements.quests.filter((quest) => !player.questIds.includes(quest));
   const missingUnlocks = task.requirements.unlocks.filter((unlock) => !player.unlockIds.includes(unlock));
   const missingTasks = task.requirements.completedTaskIds.filter(
@@ -41,6 +43,11 @@ export function getTaskEligibility(task: TaskDefinition, player: PlayerState): T
   if (missingQuests.length > 0 && player.preferences.avoidQuestTasks) {
     warnings.push('Quest prerequisites are excluded from automatic routes');
   }
+  missingItems.forEach((requirement) => {
+    if ((player.bankInventory[requirement.itemId] ?? 0) >= requirement.quantity) {
+      warnings.push(`${requirement.label ?? 'Required item'} is recorded in the bank`);
+    }
+  });
 
   const status: TaskEligibility['status'] = completed
     ? 'completed'
@@ -70,7 +77,8 @@ export function taskBlockers(task: TaskDefinition, player: PlayerState): string[
   eligibility.missingSkills.forEach((requirement) => blockers.push(`${requirement.skill} ${requirement.level}`));
   eligibility.missingItems.forEach((requirement) => {
     const label = requirement.label ?? requirement.itemId.replace('item:', '').replaceAll('-', ' ');
-    blockers.push(`${requirement.quantity}× ${label}`);
+    const inBank = player.bankInventory[requirement.itemId] ?? 0;
+    blockers.push(inBank >= requirement.quantity ? `Withdraw ${requirement.quantity}× ${label}` : `${requirement.quantity}× ${label}`);
   });
   eligibility.missingQuests.forEach((quest) => {
     blockers.push(player.preferences.avoidQuestTasks ? `Optional quest: ${quest}` : `Quest: ${quest}`);
