@@ -126,10 +126,26 @@
     })
   ];
 
+  const achievementSets = [
+    {
+      id: 'underworld-achievement-tiers',
+      name: 'Underworld achievement tiers',
+      region: 'Misthalin',
+      locality: 'City of Um',
+      tier: 'mixed',
+      achievementIds: [
+        'um-achievements-easy',
+        'um-achievements-medium',
+        'um-achievements-hard'
+      ]
+    }
+  ];
+
   global.RS3_CITY_OF_UM_DATA = Object.freeze({
     id: 'city-of-um',
-    version: 1,
+    version: 2,
     modelStatus: 'initial',
-    nodes: Object.freeze(nodes)
+    nodes: Object.freeze(nodes),
+    achievementSets: Object.freeze(achievementSets)
   });
 })(window);
