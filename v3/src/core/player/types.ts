@@ -38,6 +38,7 @@ export interface RegionUnlockState {
 
 export interface PlayerPreferences {
   avoidClueTasks: boolean;
+  avoidQuestTasks: boolean;
   hideBlockedTasks: boolean;
   preferLowTravel: boolean;
   routeLength: number;
