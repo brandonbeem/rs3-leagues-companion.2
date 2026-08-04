@@ -10,6 +10,10 @@ import {
 import type { ItemId, RegionId } from '../ids';
 import { normalizeStarterRegions } from '../regions/regionEngine';
 import { regionById, regions } from '../../data/regions';
+import {
+  startingToolBeltItemIds,
+  toolBeltEligibleItemIdSet,
+} from '../../data/items';
 import { MISHTHALIN_ID, misthalinLocationIds } from '../../data/world/misthalin';
 import type { PlayerAction, PlayerPreferences, PlayerState, SkillName } from './types';
 
@@ -48,9 +52,13 @@ const startingSkills: Partial<Record<SkillName, number>> = {
   Necromancy: 1,
 };
 
+function uniqueItemIds(itemIds: ItemId[]): ItemId[] {
+  return Array.from(new Set(itemIds));
+}
+
 export function createDefaultPlayerState(): PlayerState {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     skills: startingSkills,
     regionUnlocks: {
       [MISHTHALIN_ID]: { unlocked: true, unlockedAtPoints: 0 },
@@ -60,6 +68,7 @@ export function createDefaultPlayerState(): PlayerState {
     currentLocationId: misthalinLocationIds.lumbridgeCourtyard,
     inventory: {},
     bankInventory: {},
+    toolBeltItemIds: [...startingToolBeltItemIds],
     ownedAssetIds: [],
     unlockedTeleportIds: [],
     questIds: [],
@@ -81,16 +90,25 @@ function loadPlayerState(): PlayerState {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as Partial<PlayerState>;
+      const legacyOwnedAssets = parsed.ownedAssetIds ?? [];
+      const legacyToolBeltItems = legacyOwnedAssets.filter((itemId) => toolBeltEligibleItemIdSet.has(itemId));
+      const nonToolAssets = legacyOwnedAssets.filter((itemId) => !toolBeltEligibleItemIdSet.has(itemId));
+      const savedToolBeltItems = parsed.toolBeltItemIds ?? legacyToolBeltItems;
+
       return normalizeStarterRegions(
         {
           ...fallback,
           ...parsed,
-          schemaVersion: 2,
+          schemaVersion: 3,
           skills: { ...fallback.skills, ...parsed.skills },
           regionUnlocks: { ...fallback.regionUnlocks, ...parsed.regionUnlocks },
           inventory: { ...fallback.inventory, ...parsed.inventory },
           bankInventory: { ...fallback.bankInventory, ...parsed.bankInventory },
-          ownedAssetIds: parsed.ownedAssetIds ?? fallback.ownedAssetIds,
+          toolBeltItemIds: uniqueItemIds([
+            ...startingToolBeltItemIds,
+            ...savedToolBeltItems,
+          ]),
+          ownedAssetIds: nonToolAssets,
           preferences: { ...fallback.preferences, ...parsed.preferences },
         },
         regions,
@@ -172,6 +190,19 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
       return action.storage === 'inventory'
         ? { ...state, inventory: setQuantity(state.inventory, action.itemId, action.quantity) }
         : { ...state, bankInventory: setQuantity(state.bankInventory, action.itemId, action.quantity) };
+
+    case 'set-tool-belt-item': {
+      if (!toolBeltEligibleItemIdSet.has(action.itemId)) return state;
+      if (!action.added && startingToolBeltItemIds.includes(action.itemId)) return state;
+      return {
+        ...state,
+        toolBeltItemIds: action.added
+          ? state.toolBeltItemIds.includes(action.itemId)
+            ? state.toolBeltItemIds
+            : [...state.toolBeltItemIds, action.itemId]
+          : state.toolBeltItemIds.filter((itemId) => itemId !== action.itemId),
+      };
+    }
 
     case 'set-asset-owned':
       return {
