@@ -1,103 +1,292 @@
 import { useMemo, useState } from 'react';
+import type { ItemId, RegionId } from '../core/ids';
+import { shortestPath } from '../core/navigation/graph';
 import { usePlayer } from '../core/player/PlayerProvider';
-import { getTaskEligibility, taskBlockers } from '../core/tasks/taskEngine';
-import { misthalinEarlyTasks } from '../data/tasks/misthalinEarly';
-import { locationById } from '../data/world';
+import type { SkillName } from '../core/player/types';
+import { isRegionUnlocked } from '../core/regions/regionEngine';
+import { getTaskEligibility, taskBlockers, taskStatusLabel } from '../core/tasks/taskEngine';
+import type { TaskCategory, TaskEligibility } from '../core/tasks/types';
+import type { TravelRequirement } from '../core/world/types';
+import { itemById } from '../data/items';
+import { tasks, taskMigrationSummary } from '../data/tasks';
+import { locationById, worldData } from '../data/world';
+
+const statusOrder: Record<TaskEligibility['status'], number> = {
+  available: 0,
+  'setup-needed': 1,
+  blocked: 2,
+  completed: 3,
+};
+
+function formatTravelTime(seconds: number | null): string {
+  if (seconds === null) return 'No route recorded';
+  if (seconds < 60) return `${seconds}s travel`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return remainder ? `${minutes}m ${remainder}s travel` : `${minutes}m travel`;
+}
 
 export function TaskTracker() {
   const { player, dispatch } = usePlayer();
-  const [showBlocked, setShowBlocked] = useState(false);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | TaskEligibility['status']>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | TaskCategory>('all');
+
+  function canUseTravelRequirement(requirement: TravelRequirement): boolean {
+    switch (requirement.type) {
+      case 'skill':
+        return (player.skills[requirement.key as SkillName] ?? 1) >= (requirement.level ?? 1);
+      case 'quest':
+        return player.questIds.includes(requirement.key);
+      case 'item':
+        return (player.inventory[requirement.key as ItemId] ?? 0) > 0;
+      case 'region':
+        return isRegionUnlocked(player, requirement.key as RegionId);
+      case 'unlock':
+        return player.unlockIds.includes(requirement.key);
+      default:
+        return false;
+    }
+  }
+
+  const taskRows = useMemo(() => tasks.map((task) => {
+    const eligibility = getTaskEligibility(task, player);
+    const route = player.currentLocationId && task.locationId
+      ? shortestPath(worldData.edges, player.currentLocationId, task.locationId, canUseTravelRequirement)
+      : null;
+    return {
+      task,
+      eligibility,
+      route,
+      location: task.locationId ? locationById.get(task.locationId) : null,
+    };
+  }), [player]);
+
+  const categories = useMemo(
+    () => Array.from(new Set(tasks.map((task) => task.category))).sort(),
+    [],
+  );
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return misthalinEarlyTasks.filter((task) => {
-      const eligibility = getTaskEligibility(task, player);
-      if (!showBlocked && !eligibility.available && !player.completedTaskIds.includes(task.id)) return false;
-      if (!query) return true;
-      return `${task.name} ${task.locality} ${task.category}`.toLowerCase().includes(query);
-    });
-  }, [player, search, showBlocked]);
+    return taskRows
+      .filter(({ task, eligibility, location }) => {
+        if (player.preferences.hideBlockedTasks && eligibility.status === 'blocked') return false;
+        if (statusFilter !== 'all' && eligibility.status !== statusFilter) return false;
+        if (categoryFilter !== 'all' && task.category !== categoryFilter) return false;
+        if (!query) return true;
+        const haystack = [
+          task.name,
+          task.information,
+          task.locality,
+          task.category,
+          task.priority,
+          location?.name ?? '',
+          ...task.requirements.skills.map((requirement) => `${requirement.skill} ${requirement.level}`),
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      })
+      .sort((a, b) => {
+        const statusDifference = statusOrder[a.eligibility.status] - statusOrder[b.eligibility.status];
+        if (statusDifference !== 0) return statusDifference;
+        const aTravel = a.route?.totalSeconds ?? Number.POSITIVE_INFINITY;
+        const bTravel = b.route?.totalSeconds ?? Number.POSITIVE_INFINITY;
+        if (aTravel !== bTravel) return aTravel - bTravel;
+        return a.task.legacyTaskId - b.task.legacyTaskId;
+      });
+  }, [categoryFilter, player.preferences.hideBlockedTasks, search, statusFilter, taskRows]);
 
-  const availableCount = misthalinEarlyTasks.filter((task) => getTaskEligibility(task, player).available).length;
-  const completedCount = misthalinEarlyTasks.filter((task) => player.completedTaskIds.includes(task.id)).length;
-  const completedPoints = misthalinEarlyTasks
-    .filter((task) => player.completedTaskIds.includes(task.id))
-    .reduce((total, task) => total + task.points, 0);
+  const counts = taskRows.reduce(
+    (summary, row) => ({ ...summary, [row.eligibility.status]: summary[row.eligibility.status] + 1 }),
+    { available: 0, 'setup-needed': 0, blocked: 0, completed: 0 } as Record<TaskEligibility['status'], number>,
+  );
+  const completedPoints = taskRows
+    .filter((row) => row.eligibility.status === 'completed')
+    .reduce((total, row) => total + row.task.points, 0);
 
   return (
-    <section className="page-stack">
+    <section className="page-stack task-page">
       <header className="page-header compact-header">
         <div>
-          <p className="eyebrow">MILESTONE 2.2</p>
+          <p className="eyebrow">MILESTONE 2.2 · BATCH A</p>
           <h1>Early Misthalin Tasks</h1>
-          <p>Official Catalyst tasks are now linked to player levels, inventory requirements, and world locations.</p>
+          <p>
+            Real V20 Catalyst tasks are now linked to player levels, setup items, completion state, and sourced world locations.
+          </p>
         </div>
-        <div className="version-badge">{completedPoints} points</div>
+        <div className="version-badge">{completedPoints} / {taskMigrationSummary.totalPoints} points</div>
       </header>
 
       <div className="engine-summary-grid">
-        <article className="metric-card"><span>Migrated tasks</span><strong>{misthalinEarlyTasks.length}</strong><small>First verified Catalyst batch</small></article>
-        <article className="metric-card"><span>Available now</span><strong>{availableCount}</strong><small>Based on current player state</small></article>
-        <article className="metric-card"><span>Completed</span><strong>{completedCount}</strong><small>Saved locally in your browser</small></article>
-        <article className="metric-card"><span>Hidden blocked tasks</span><strong>{showBlocked ? 0 : misthalinEarlyTasks.length - visibleTasks.length}</strong><small>Matches your preferred clean view</small></article>
+        <article className="metric-card">
+          <span>Migrated tasks</span>
+          <strong>{taskMigrationSummary.total}</strong>
+          <small>{taskMigrationSummary.verified} verified records from the first batch</small>
+        </article>
+        <article className="metric-card">
+          <span>Available now</span>
+          <strong>{counts.available}</strong>
+          <small>Skill and access requirements currently met</small>
+        </article>
+        <article className="metric-card">
+          <span>Setup needed</span>
+          <strong>{counts['setup-needed']}</strong>
+          <small>Visible preparation work, not falsely labelled blocked</small>
+        </article>
+        <article className="metric-card">
+          <span>Completed</span>
+          <strong>{counts.completed}</strong>
+          <small>Saved in the shared local player state</small>
+        </article>
       </div>
 
-      <div className="filter-bar task-filter-bar">
-        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search migrated tasks..." />
-        <button type="button" className="secondary-button" onClick={() => setShowBlocked((value) => !value)}>
-          {showBlocked ? 'Hide blocked tasks' : 'Show blocked tasks'}
-        </button>
+      <div className="task-control-panel panel">
+        <div className="task-filter-grid">
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search tasks, locations, skills, or activities..."
+            aria-label="Search migrated tasks"
+          />
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as 'all' | TaskEligibility['status'])}
+            aria-label="Filter task status"
+          >
+            <option value="all">All visible statuses</option>
+            <option value="available">Available</option>
+            <option value="setup-needed">Setup needed</option>
+            <option value="completed">Completed</option>
+            <option value="blocked">Blocked</option>
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value as 'all' | TaskCategory)}
+            aria-label="Filter task category"
+          >
+            <option value="all">All categories</option>
+            {categories.map((category) => <option value={category} key={category}>{category}</option>)}
+          </select>
+        </div>
+        <label className="blocked-task-toggle">
+          <input
+            type="checkbox"
+            checked={!player.preferences.hideBlockedTasks}
+            onChange={(event) => dispatch({ type: 'set-preference', key: 'hideBlockedTasks', value: !event.target.checked })}
+          />
+          <span>Show blocked tasks</span>
+          <small>{counts.blocked} currently hidden when this is off</small>
+        </label>
+      </div>
+
+      <div className="task-result-summary">
+        <strong>{visibleTasks.length} task{visibleTasks.length === 1 ? '' : 's'} shown</strong>
+        <span>Sorted by readiness, then current-location travel estimate.</span>
       </div>
 
       <div className="task-card-grid">
-        {visibleTasks.map((task) => {
-          const completed = player.completedTaskIds.includes(task.id);
-          const eligibility = getTaskEligibility(task, player);
+        {visibleTasks.map(({ task, eligibility, route, location }) => {
           const blockers = taskBlockers(task, player);
-          const location = task.locationId ? locationById.get(task.locationId) : null;
+          const setupSteps = task.acquisitionSteps.filter((step) => step.type === 'obtain-item' || step.type === 'train-skill');
+          const actionSteps = task.acquisitionSteps.filter((step) => step.type !== 'obtain-item' && step.type !== 'train-skill');
 
           return (
-            <article key={task.id} className={`panel task-card ${completed ? 'completed' : eligibility.available ? 'available' : 'blocked'}`}>
+            <article key={task.id} className={`panel task-card status-${eligibility.status}`}>
               <div className="task-card-heading">
-                <div>
-                  <span className={`task-tier ${task.tier}`}>{task.tier}</span>
+                <div className="task-title-copy">
+                  <div className="task-chip-row">
+                    <span className={`task-status status-${eligibility.status}`}>{taskStatusLabel(eligibility.status)}</span>
+                    <span className={`task-tier ${task.tier}`}>{task.tier}</span>
+                    <span className="task-legacy-id">V20 #{task.legacyTaskId}</span>
+                  </div>
                   <h2>{task.name}</h2>
-                  <p>{task.locality}</p>
+                  <p>{task.information}</p>
                 </div>
                 <strong className="task-points">+{task.points}</strong>
               </div>
 
-              <div className="task-meta-row">
-                <span>{location?.name ?? 'Location pending'}</span>
-                <span>{task.category}</span>
-                <span className={task.reviewStatus === 'verified' ? 'verified-text' : 'review-text'}>{task.reviewStatus}</span>
+              <div className="task-location-strip">
+                <div>
+                  <span>Location</span>
+                  <strong>{location?.name ?? 'Location pending'}</strong>
+                </div>
+                <div>
+                  <span>From current location</span>
+                  <strong>{formatTravelTime(route?.totalSeconds ?? null)}</strong>
+                </div>
+                <div>
+                  <span>Activity</span>
+                  <strong>{task.category}</strong>
+                </div>
               </div>
 
-              {!completed && blockers.length > 0 && (
-                <div className="task-blockers"><strong>Needs:</strong> {blockers.join(' · ')}</div>
+              {(task.requirements.skills.length > 0 || task.requirements.items.length > 0) && (
+                <div className="task-requirement-chips">
+                  {task.requirements.skills.map((requirement) => (
+                    <span className={eligibility.missingSkills.includes(requirement) ? 'missing' : 'met'} key={`${requirement.skill}-${requirement.level}`}>
+                      {requirement.skill} {requirement.level}
+                    </span>
+                  ))}
+                  {task.requirements.items.map((requirement) => (
+                    <span className={eligibility.missingItems.includes(requirement) ? 'missing' : 'met'} key={requirement.itemId}>
+                      {requirement.quantity}× {requirement.label ?? itemById.get(requirement.itemId)?.name ?? requirement.itemId}
+                    </span>
+                  ))}
+                </div>
               )}
 
-              {task.acquisitionSteps.length > 0 && (
+              {blockers.length > 0 && eligibility.status !== 'completed' && (
+                <div className={eligibility.status === 'setup-needed' ? 'task-setup-box' : 'task-blockers'}>
+                  <strong>{eligibility.status === 'setup-needed' ? 'Prepare first:' : 'Blocked by:'}</strong>
+                  <span>{blockers.join(' · ')}</span>
+                </div>
+              )}
+
+              {eligibility.warnings.length > 0 && eligibility.status !== 'completed' && (
+                <div className="task-warning-list">
+                  {eligibility.warnings.map((warning) => <span key={warning}>{warning}</span>)}
+                </div>
+              )}
+
+              {(setupSteps.length > 0 || actionSteps.length > 0) && (
                 <details className="task-acquisition">
-                  <summary>Acquisition and route steps</summary>
-                  <ol>{task.acquisitionSteps.map((step) => <li key={step.label}>{step.label}</li>)}</ol>
+                  <summary>Preparation and completion steps</summary>
+                  <ol>
+                    {[...setupSteps, ...actionSteps].map((step) => (
+                      <li key={`${step.type}-${step.label}`}>
+                        <strong>{step.type.replaceAll('-', ' ')}</strong>
+                        <span>{step.label}</span>
+                        {step.notes && <small>{step.notes}</small>}
+                      </li>
+                    ))}
+                  </ol>
                 </details>
               )}
 
-              <button
-                type="button"
-                className={completed ? 'primary-button selected' : 'primary-button'}
-                onClick={() => dispatch({ type: 'toggle-task', taskId: task.id })}
-              >
-                {completed ? 'Mark incomplete' : 'Mark complete'}
-              </button>
+              <div className="task-card-footer">
+                <div>
+                  <span className={`verification-label ${task.reviewStatus}`}>{task.reviewStatus.replace('-', ' ')}</span>
+                  <small>{task.sources.length} source{task.sources.length === 1 ? '' : 's'} · {task.priority}</small>
+                </div>
+                <button
+                  type="button"
+                  className={eligibility.status === 'completed' ? 'primary-button selected' : 'primary-button'}
+                  onClick={() => dispatch({ type: 'toggle-task', taskId: task.id })}
+                >
+                  {eligibility.status === 'completed' ? 'Mark incomplete' : 'Mark complete'}
+                </button>
+              </div>
             </article>
           );
         })}
       </div>
 
-      {visibleTasks.length === 0 && <div className="panel route-empty">No tasks match the current filters.</div>}
+      {visibleTasks.length === 0 && (
+        <div className="panel task-empty-state">
+          <h2>No tasks match these filters</h2>
+          <p>Clear the search or enable blocked tasks to inspect the full migrated batch.</p>
+        </div>
+      )}
     </section>
   );
 }
