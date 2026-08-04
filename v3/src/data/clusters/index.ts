@@ -1,7 +1,8 @@
 import { misthalinTaskClusters } from './misthalin';
 import { misthalinExpansionAssignments } from './misthalinExpansionAssignments';
+import { misthalinHardTaskClusters } from './misthalinHard';
 
-export const taskClusters = misthalinTaskClusters.map((cluster) => {
+const baseMisthalinClusters = misthalinTaskClusters.map((cluster) => {
   const addedTaskIds = misthalinExpansionAssignments[cluster.id] ?? [];
   return {
     ...cluster,
@@ -9,6 +10,8 @@ export const taskClusters = misthalinTaskClusters.map((cluster) => {
     recommendedTaskOrder: [...cluster.recommendedTaskOrder, ...addedTaskIds],
   };
 });
+
+export const taskClusters = [...baseMisthalinClusters, ...misthalinHardTaskClusters];
 
 export const taskClusterById = new Map(taskClusters.map((cluster) => [cluster.id, cluster]));
 export const taskClusterByTaskId = new Map(
