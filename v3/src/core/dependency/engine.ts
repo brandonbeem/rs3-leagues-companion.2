@@ -1,7 +1,8 @@
-import type { TaskId } from '../ids';
+import type { ItemId, TaskId } from '../ids';
 import type { PlayerState } from '../player/types';
 import { requiresManualCompletion } from '../tasks/manualContent';
 import type { AcquisitionStep, TaskDefinition } from '../tasks/types';
+import type { AcquisitionCandidate, ItemAcquisitionResolution } from '../acquisition/types';
 import type {
   DependencyNode,
   DependencyResolution,
@@ -12,6 +13,7 @@ import type {
 export interface DependencyContext {
   taskById: Map<TaskId, TaskDefinition>;
   itemName: (itemId: string) => string;
+  resolveItem?: (itemId: ItemId, quantity: number) => ItemAcquisitionResolution | null;
   maxDepth?: number;
 }
 
@@ -34,6 +36,14 @@ function statusForChildren(children: DependencyNode[]): DependencyStatus {
   return 'satisfied';
 }
 
+function itemStatusForChildren(children: DependencyNode[]): DependencyStatus {
+  if (children.some((child) => child.status === 'actionable')) return 'actionable';
+  if (children.some((child) => child.status === 'manual')) return 'manual';
+  if (children.some((child) => child.status === 'review')) return 'review';
+  if (children.some((child) => child.status === 'blocked')) return 'blocked';
+  return 'unresolved';
+}
+
 function actionNode(step: AcquisitionStep, index: number): DependencyNode {
   const manual = step.type === 'complete-quest';
   return {
@@ -45,6 +55,31 @@ function actionNode(step: AcquisitionStep, index: number): DependencyNode {
     description: step.notes,
     itemId: step.itemId,
     quantity: step.quantity,
+    children: [],
+  };
+}
+
+function acquisitionNode(candidate: AcquisitionCandidate, taskId: TaskId): DependencyNode {
+  const status: DependencyStatus = candidate.status === 'available'
+    ? 'actionable'
+    : candidate.status === 'manual'
+      ? 'manual'
+      : 'review';
+  const details = [
+    candidate.method.replaceAll('-', ' '),
+    candidate.estimatedSeconds === null ? null : `about ${candidate.estimatedSeconds}s`,
+    candidate.coinCost === null ? null : `${candidate.coinCost} coins`,
+    ...(candidate.notes ?? []),
+  ].filter((value): value is string => Boolean(value));
+
+  return {
+    id: `acquisition:${taskId}:${candidate.id}`,
+    kind: 'action',
+    label: candidate.label,
+    status,
+    required: true,
+    description: details.join(' · '),
+    itemId: candidate.itemId,
     children: [],
   };
 }
@@ -117,28 +152,45 @@ function buildTaskNode(
   });
 
   task.requirements.items.forEach((requirement) => {
-    const owned = player.inventory[requirement.itemId] ?? 0;
-    const satisfied = owned >= requirement.quantity;
+    const sharedResolution = context.resolveItem?.(requirement.itemId, requirement.quantity) ?? null;
+    const carried = player.inventory[requirement.itemId] ?? 0;
+    const banked = player.bankInventory[requirement.itemId] ?? 0;
+    const persistentOwned = player.ownedAssetIds.includes(requirement.itemId);
+    const satisfied = sharedResolution?.satisfied ?? persistentOwned || carried >= requirement.quantity;
     const matchingSteps = task.acquisitionSteps
-      .filter((step) => step.type === 'obtain-item' && step.itemId === requirement.itemId)
-      .map(actionNode);
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => step.type === 'obtain-item' && step.itemId === requirement.itemId)
+      .map(({ step, index }) => actionNode(step, index));
+    const sharedSteps = sharedResolution?.bestOption
+      ? [acquisitionNode(sharedResolution.bestOption, task.id)]
+      : [];
+    const itemChildren = satisfied ? [] : [...sharedSteps, ...matchingSteps];
     const itemLabel = requirement.label ?? context.itemName(requirement.itemId);
+
     children.push({
       id: `item:${task.id}:${requirement.itemId}`,
       kind: 'item',
       label: `${requirement.quantity}× ${itemLabel}`,
-      status: satisfied ? 'satisfied' : matchingSteps.length > 0 ? 'actionable' : 'unresolved',
+      status: satisfied
+        ? 'satisfied'
+        : itemChildren.length > 0
+          ? itemStatusForChildren(itemChildren)
+          : 'unresolved',
       required: true,
-      description: satisfied
-        ? `${owned} currently recorded in inventory`
-        : requirement.mustBeOwnedBeforeRoute
-          ? 'Must be owned before this route starts'
-          : 'Can be obtained during route preparation',
+      description: persistentOwned
+        ? 'Recorded as a reusable owned asset'
+        : carried >= requirement.quantity
+          ? `${carried} currently recorded in inventory`
+          : banked >= requirement.quantity
+            ? `${banked} recorded in the bank; withdrawal can be planned`
+            : requirement.mustBeOwnedBeforeRoute
+              ? 'Must be owned before this route starts'
+              : 'Can be obtained during route preparation',
       itemId: requirement.itemId,
-      currentValue: owned,
+      currentValue: carried,
       targetValue: requirement.quantity,
       quantity: requirement.quantity,
-      children: satisfied ? [] : matchingSteps,
+      children: itemChildren,
     });
   });
 
