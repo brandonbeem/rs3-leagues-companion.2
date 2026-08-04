@@ -1,8 +1,8 @@
-/* Relic-planner-style enhancement for the existing Region Explorer page.
- * Reads the app's rendered region cards, then presents a searchable master/detail view.
- * The original region content remains available as a safe fallback if enhancement fails.
+/* Relic-planner-style Region Planner for the existing Regions page.
+ * Reads the app's rendered region cards, then replaces the legacy card grid
+ * with a searchable master/detail planner.
  */
-(function initRegionExplorerEnhancement(global) {
+(function initRegionPlannerEnhancement(global) {
   'use strict';
 
   const ROOT_ID = 'rs3-region-explorer-enhanced';
@@ -11,11 +11,13 @@
     'Misthalin', 'Havenhythe', 'Asgarnia', 'Wilderness', 'Kandarin',
     'Morytania', 'Karamja', 'Desert', 'Fremennik', 'Tirannwn'
   ];
+  const LEGACY_ONLY_CARDS = ['Elven Lands', 'Anachronia'];
 
-  function findExplorerHeading() {
-    return [...document.querySelectorAll('h1,h2')].find(el =>
-      el.textContent.trim().toLowerCase() === 'region explorer'
-    ) || null;
+  function findPlannerHeading() {
+    return [...document.querySelectorAll('h1,h2')].find(el => {
+      const text = el.textContent.trim().toLowerCase();
+      return text === 'region explorer' || text === 'region planner';
+    }) || null;
   }
 
   function closestCard(heading) {
@@ -27,6 +29,13 @@
       current = current.parentElement;
     }
     return heading.parentElement;
+  }
+
+  function findNamedCard(scope, name) {
+    const heading = [...scope.querySelectorAll('h2,h3,h4,strong')].find(el =>
+      el.textContent.trim().toLowerCase() === name.toLowerCase()
+    );
+    return heading ? closestCard(heading) : null;
   }
 
   function readLabelValue(text, label, nextLabels) {
@@ -57,29 +66,21 @@
     const status = /STARTER REGION|STARTER/i.test(text) ? 'Starter'
       : /UNLOCKED|SELECTED/i.test(text) ? 'Unlocked'
       : /LOCKED/i.test(text) ? 'Locked' : 'Available';
-
-    const subareas = readLabelValue(text, 'SUBAREAS / CITIES', labels.filter(v => v !== 'SUBAREAS / CITIES'));
-    const tasksRaw = readLabelValue(text, upper.includes('DUMMY TASKS') ? 'DUMMY TASKS' : 'TASKS', labels.filter(v => !['TASKS','DUMMY TASKS'].includes(v)));
-    const pointsRaw = readLabelValue(text, 'TOTAL POINTS', labels.filter(v => v !== 'TOTAL POINTS'));
-    const skills = readLabelValue(text, 'TOP SKILL COVERAGE', labels.filter(v => v !== 'TOP SKILL COVERAGE'));
-    const bosses = readLabelValue(text, 'BOSSES IN OLD TASK SET', labels.filter(v => v !== 'BOSSES IN OLD TASK SET'));
-    const notes = readLabelValue(text, 'PLANNING NOTES', labels.filter(v => v !== 'PLANNING NOTES'));
-
+    const value = label => readLabelValue(text, label, labels.filter(item => item !== label));
     const pointCounts = {};
-    for (const tier of ['10 PT','30 PT','80 PT','200 PT','400 PT']) {
-      pointCounts[tier.replace(' PT','')] = parseNumber(readLabelValue(text, tier, labels.filter(v => v !== tier)));
+    for (const tier of ['10 PT', '30 PT', '80 PT', '200 PT', '400 PT']) {
+      pointCounts[tier.replace(' PT', '')] = parseNumber(value(tier));
     }
-
     return {
       id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       name,
       status,
-      subareas,
-      tasks: parseNumber(tasksRaw),
-      totalPoints: parseNumber(pointsRaw),
-      skills,
-      bosses,
-      notes,
+      subareas: value('SUBAREAS / CITIES'),
+      tasks: parseNumber(value(upper.includes('DUMMY TASKS') ? 'DUMMY TASKS' : 'TASKS')),
+      totalPoints: parseNumber(value('TOTAL POINTS')),
+      skills: value('TOP SKILL COVERAGE'),
+      bosses: value('BOSSES IN OLD TASK SET'),
+      notes: value('PLANNING NOTES'),
       pointCounts,
       sourceCard: card
     };
@@ -88,15 +89,24 @@
   function collectRegions(scope) {
     const regions = [];
     for (const name of KNOWN_REGIONS) {
-      const heading = [...scope.querySelectorAll('h2,h3,h4,strong')].find(el =>
-        el.textContent.trim().toLowerCase() === name.toLowerCase()
-      );
-      if (!heading) continue;
-      const card = closestCard(heading);
+      const card = findNamedCard(scope, name);
       if (!card || regions.some(region => region.sourceCard === card)) continue;
       regions.push(parseCard(card, name));
     }
     return regions;
+  }
+
+  function hideLegacyCards(scope, regions) {
+    const cards = new Set(regions.map(region => region.sourceCard));
+    for (const name of LEGACY_ONLY_CARDS) {
+      const card = findNamedCard(scope, name);
+      if (card) cards.add(card);
+    }
+    cards.forEach(card => {
+      card.dataset.rxOriginalRegionCard = 'true';
+      card.hidden = true;
+      card.style.display = 'none';
+    });
   }
 
   function readSelected(regions) {
@@ -124,19 +134,12 @@
       .filter(([, value]) => value > 0)
       .map(([tier, value]) => metric(`${tier} pt`, value))
       .join('');
-
     detail.innerHTML = `
-      <div class="rx-detail-head">
-        <div>
-          <div class="rx-title-row"><h2>${region.name}</h2><span class="rx-badge ${region.status.toLowerCase()}">${region.status}</span></div>
-          <p>${region.subareas || 'Region details will populate from the loaded task set.'}</p>
-        </div>
-      </div>
-      <div class="rx-metrics">
-        ${metric('Tasks', region.tasks)}
-        ${metric('Total points', region.totalPoints.toLocaleString())}
-        ${counts}
-      </div>
+      <div class="rx-detail-head"><div>
+        <div class="rx-title-row"><h2>${region.name}</h2><span class="rx-badge ${region.status.toLowerCase()}">${region.status}</span></div>
+        <p>${region.subareas || 'Region details will populate from the loaded task set.'}</p>
+      </div></div>
+      <div class="rx-metrics">${metric('Tasks', region.tasks)}${metric('Total points', region.totalPoints.toLocaleString())}${counts}</div>
       <section class="rx-info"><small>TOP SKILL COVERAGE</small><p>${region.skills || 'Not available in the loaded task set.'}</p></section>
       <section class="rx-info"><small>BOSSES</small><p>${region.bosses || 'No bosses listed in the loaded task set.'}</p></section>
       ${region.notes ? `<section class="rx-info"><small>PLANNING NOTES</small><p>${region.notes}</p></section>` : ''}
@@ -154,7 +157,6 @@
       const button = detail.querySelector('[data-rx-select]');
       if (button) button.textContent = 'Selected region';
     });
-
     detail.querySelector('[data-rx-plan]')?.addEventListener('click', () => {
       saveSelected(region);
       global.dispatchEvent(new CustomEvent('rs3:plan-with-region', {
@@ -165,13 +167,16 @@
 
   function mount() {
     if (document.getElementById(ROOT_ID)) return true;
-    const heading = findExplorerHeading();
+    const heading = findPlannerHeading();
     if (!heading) return false;
     const page = heading.closest('main,section,[role="main"]') || heading.parentElement?.parentElement || document.body;
     const regions = collectRegions(page);
     if (regions.length < 2) return false;
 
-    const originalCards = [...new Set(regions.map(region => region.sourceCard))];
+    heading.textContent = 'Region Planner';
+    const subtitle = heading.parentElement?.querySelector('p');
+    if (subtitle) subtitle.textContent = 'Compare League regions, review task value, and select the region you want to plan around.';
+
     const selected = readSelected(regions);
     const root = document.createElement('section');
     root.id = ROOT_ID;
@@ -182,23 +187,16 @@
         <label><span>Status</span><select data-rx-status><option value="all">All regions</option><option value="Starter">Starter</option><option value="Unlocked">Unlocked</option><option value="Available">Available</option><option value="Locked">Locked</option></select></label>
       </div>
       <div class="rx-layout">
-        <div class="rx-list-panel">
-          <div class="rx-list-head"><strong>League regions</strong><small data-rx-count>${regions.length} shown</small></div>
-          <div class="rx-list" data-rx-list></div>
-        </div>
+        <div class="rx-list-panel"><div class="rx-list-head"><strong>League regions</strong><small data-rx-count>${regions.length} shown</small></div><div class="rx-list" data-rx-list></div></div>
         <article class="rx-detail" data-rx-detail></article>
       </div>`;
 
     heading.parentElement?.insertAdjacentElement('afterend', root);
-    originalCards.forEach(card => {
-      card.dataset.rxOriginalRegionCard = 'true';
-      card.hidden = true;
-    });
+    hideLegacyCards(page, regions);
 
     const list = root.querySelector('[data-rx-list]');
     const search = root.querySelector('[data-rx-search]');
     const status = root.querySelector('[data-rx-status]');
-
     function renderList() {
       const query = search.value.trim().toLowerCase();
       const selectedStatus = status.value;
@@ -223,7 +221,6 @@
         });
       });
     }
-
     search.addEventListener('input', renderList);
     status.addEventListener('change', renderList);
     renderList();
