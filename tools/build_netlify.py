@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -9,7 +10,6 @@ DIST = ROOT / "dist"
 DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 STYLE_PATHS = [
-    "features/dependencies/region-planner.css",
     "features/dependencies/region-explorer-enhancement.css",
 ]
 SCRIPT_PATHS = [
@@ -19,13 +19,26 @@ SCRIPT_PATHS = [
     "features/dependencies/fort-forinthry-data.js",
     "features/dependencies/city-of-um-data.js",
     "features/dependencies/register-regions.js",
-    "features/dependencies/region-planner.js",
     "features/dependencies/region-explorer-enhancement.js",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
 
 html = SOURCE.read_text(encoding="utf-8")
+
+# Remove stale overlay tags that may already exist in the standalone source.
+html = re.sub(
+    r'\s*<link\b[^>]*href=["\']features/dependencies/region-planner\.css["\'][^>]*>\s*',
+    "\n",
+    html,
+    flags=re.IGNORECASE,
+)
+html = re.sub(
+    r'\s*<script\b[^>]*src=["\']features/dependencies/region-planner\.js["\'][^>]*>\s*</script>\s*',
+    "\n",
+    html,
+    flags=re.IGNORECASE,
+)
 
 for style_path in STYLE_PATHS:
     if style_path not in html:
@@ -49,5 +62,14 @@ for relative_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
     if not output.exists() or output.stat().st_size == 0:
         raise SystemExit(f"Build output missing required asset: {relative_path}")
 
+built_html = (DIST / "index.html").read_text(encoding="utf-8")
+for forbidden in (
+    "features/dependencies/region-planner.css",
+    "features/dependencies/region-planner.js",
+    "rs3-region-planner",
+):
+    if forbidden in built_html:
+        raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
+
 print(f"Built {DIST / 'index.html'}")
-print("Included progression areas, achievement checklists, Region Planner, and relic-style Region Explorer assets")
+print("Included in-page Region Explorer without the floating Region Planner overlay")

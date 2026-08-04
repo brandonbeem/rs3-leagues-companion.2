@@ -11,8 +11,6 @@ REQUIRED = [
     ROOT / "features/dependencies/fort-forinthry-data.js",
     ROOT / "features/dependencies/city-of-um-data.js",
     ROOT / "features/dependencies/register-regions.js",
-    ROOT / "features/dependencies/region-planner.js",
-    ROOT / "features/dependencies/region-planner.css",
     ROOT / "features/dependencies/region-explorer-enhancement.js",
     ROOT / "features/dependencies/region-explorer-enhancement.css",
 ]
