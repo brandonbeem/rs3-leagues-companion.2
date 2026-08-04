@@ -2,6 +2,8 @@ import { worldData, worldVerificationSummary } from '../data/world';
 
 interface DashboardProps {
   selectedRelics: number;
+  unlockedRegions: number;
+  currentLocationName: string;
 }
 
 const milestones = [
@@ -12,7 +14,7 @@ const milestones = [
   ['Task Migration', 'Move verified early Misthalin tasks into the new schema', 'next'],
 ];
 
-export function Dashboard({ selectedRelics }: DashboardProps) {
+export function Dashboard({ selectedRelics, unlockedRegions, currentLocationName }: DashboardProps) {
   return (
     <section className="page-stack">
       <header className="page-header">
@@ -26,11 +28,17 @@ export function Dashboard({ selectedRelics }: DashboardProps) {
         <div className="version-badge">Milestone 2.1</div>
       </header>
 
+      <div className="player-state-strip">
+        <div><span>Current location</span><strong>{currentLocationName}</strong></div>
+        <div><span>Unlocked regions</span><strong>{unlockedRegions}</strong></div>
+        <div><span>Selected relics</span><strong>{selectedRelics}</strong></div>
+      </div>
+
       <div className="metric-grid">
         <article className="metric-card">
           <span>Relics in data layer</span>
           <strong>15</strong>
-          <small>{selectedRelics} selected in the shared player state</small>
+          <small>All revealed relics are stored separately from the UI</small>
         </article>
         <article className="metric-card">
           <span>Verified world nodes</span>
