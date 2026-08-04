@@ -8,6 +8,7 @@ REQUIRED = [
     ROOT / "features/dependencies/dependency-engine.js",
     ROOT / "features/dependencies/region-registry.js",
     ROOT / "features/dependencies/fort-forinthry-data.js",
+    ROOT / "features/dependencies/city-of-um-data.js",
     ROOT / "features/dependencies/register-regions.js",
     ROOT / "features/dependencies/region-planner.js",
     ROOT / "features/dependencies/region-planner.css",
@@ -24,7 +25,6 @@ index_path = ROOT / "index.html"
 index = index_path.read_text(encoding="utf-8", errors="replace") if index_path.exists() else ""
 index_lower = index.lower()
 
-# Validate stable HTML structure instead of a brittle version-specific title.
 if index_path.exists() and index_path.stat().st_size < 100_000:
     errors.append("index.html is unexpectedly small; expected the standalone companion app")
 for marker in ("<!doctype html", "<head", "</head>", "<body", "</body>"):
@@ -38,8 +38,18 @@ if "parentRegion" not in registry:
     errors.append("Progression-area registry must require parentRegion")
 
 registration = (ROOT / "features/dependencies/register-regions.js").read_text(encoding="utf-8")
-if "parentRegion: 'Misthalin'" not in registration:
-    errors.append("Fort Forinthry must be registered beneath Misthalin")
+for expected in (
+    "id: 'misthalin-fort-forinthry'",
+    "id: 'misthalin-city-of-um'",
+    "dashboardRegionId: 'misthalin'",
+):
+    if expected not in registration:
+        errors.append(f"Progression-area registration is missing: {expected}")
+
+city_data = (ROOT / "features/dependencies/city-of-um-data.js").read_text(encoding="utf-8")
+for expected in ("locality: 'City of Um'", "region: 'Misthalin'", "um-quest-necromancy"):
+    if expected not in city_data:
+        errors.append(f"City of Um model is missing: {expected}")
 
 if errors:
     print("Project validation failed:")
