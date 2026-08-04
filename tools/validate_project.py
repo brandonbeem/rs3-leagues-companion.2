@@ -11,8 +11,6 @@ REQUIRED = [
     ROOT / "features/dependencies/fort-forinthry-data.js",
     ROOT / "features/dependencies/city-of-um-data.js",
     ROOT / "features/dependencies/register-regions.js",
-    ROOT / "features/dependencies/region-planner.js",
-    ROOT / "features/dependencies/region-planner.css",
     ROOT / "features/dependencies/region-explorer-enhancement.js",
     ROOT / "features/dependencies/region-explorer-enhancement.css",
 ]
@@ -69,6 +67,11 @@ region_explorer = (ROOT / "features/dependencies/region-explorer-enhancement.js"
 for expected in ("Region Explorer", "Search regions", "rs3:league-region-selected", "Plan with this region"):
     if expected not in region_explorer:
         errors.append(f"Region Explorer enhancement is missing: {expected}")
+
+build_script = (ROOT / "tools/build_netlify.py").read_text(encoding="utf-8")
+for forbidden in ("region-planner.css", "region-planner.js"):
+    if forbidden in build_script:
+        errors.append(f"Floating Region Planner must not be loaded by the production build: {forbidden}")
 
 if errors:
     print("Project validation failed:")
