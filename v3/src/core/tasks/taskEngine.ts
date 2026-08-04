@@ -3,6 +3,11 @@ import type { PlayerState } from '../player/types';
 import { isRegionUnlocked } from '../regions/regionEngine';
 import type { TaskDefinition, TaskEligibility } from './types';
 
+export function isTaskAllowedInRecommendedRoutes(task: TaskDefinition, player: PlayerState): boolean {
+  if (task.category === 'quest' && player.preferences.avoidQuestTasks) return false;
+  return true;
+}
+
 export function getTaskEligibility(task: TaskDefinition, player: PlayerState): TaskEligibility {
   const completed = player.completedTaskIds.includes(task.id);
   const missingSkills = task.requirements.skills.filter(
@@ -33,6 +38,9 @@ export function getTaskEligibility(task: TaskDefinition, player: PlayerState): T
   if (task.routePolicy === 'manual-only') warnings.push('Manual or variable completion route');
   if (task.reviewStatus === 'needs-review') warnings.push('Some task-routing details need review');
   if (task.estimatedSeconds === null) warnings.push('Completion time is not estimated yet');
+  if (missingQuests.length > 0 && player.preferences.avoidQuestTasks) {
+    warnings.push('Quest prerequisites are excluded from automatic routes');
+  }
 
   const status: TaskEligibility['status'] = completed
     ? 'completed'
@@ -64,7 +72,9 @@ export function taskBlockers(task: TaskDefinition, player: PlayerState): string[
     const label = requirement.label ?? requirement.itemId.replace('item:', '').replaceAll('-', ' ');
     blockers.push(`${requirement.quantity}× ${label}`);
   });
-  eligibility.missingQuests.forEach((quest) => blockers.push(`Quest: ${quest}`));
+  eligibility.missingQuests.forEach((quest) => {
+    blockers.push(player.preferences.avoidQuestTasks ? `Optional quest: ${quest}` : `Quest: ${quest}`);
+  });
   eligibility.missingUnlocks.forEach((unlock) => blockers.push(`Unlock: ${unlock}`));
   eligibility.missingTasks.forEach((taskId) => blockers.push(`Task: ${taskId.replace('task:', '')}`));
   if (eligibility.blockedByReview) blockers.push('Task data is blocked pending review');
