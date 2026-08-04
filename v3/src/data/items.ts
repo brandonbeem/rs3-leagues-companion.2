@@ -1,10 +1,15 @@
 import { ids } from '../core/ids';
 import type { ItemId } from '../core/ids';
 
+export type ItemKind = 'tool' | 'consumable' | 'quest-item' | 'equipment' | 'material';
+
 export interface ItemDefinition {
   id: ItemId;
   name: string;
-  kind: 'tool' | 'consumable' | 'quest-item' | 'equipment';
+  kind: ItemKind;
+  persistent: boolean;
+  starterKitEligible: boolean;
+  toolBeltEligible?: boolean;
   notes?: string;
 }
 
@@ -19,19 +24,26 @@ export const items: ItemDefinition[] = [
     id: itemIds.smallFishingNet,
     name: 'Small fishing net',
     kind: 'tool',
-    notes: 'Required to use the net option at novice fishing spots unless League starting conditions supply an equivalent tool.',
+    persistent: true,
+    starterKitEligible: true,
+    notes: 'Reusable fishing tool. Exact Catalyst League starting access is still being verified.',
   },
   {
     id: itemIds.pickaxe,
     name: 'Usable pickaxe',
     kind: 'tool',
-    notes: 'May be carried or available through the tool belt; ownership handling will be expanded in the acquisition engine.',
+    persistent: true,
+    starterKitEligible: true,
+    toolBeltEligible: true,
+    notes: 'Reusable mining tool. The player may carry one or have an eligible pickaxe available through the tool belt.',
   },
   {
     id: itemIds.charmedSack,
     name: 'Charmed sack',
     kind: 'quest-item',
-    notes: 'Used at the Nexus in Lumbridge Swamp.',
+    persistent: false,
+    starterKitEligible: false,
+    notes: 'Used at the Nexus in Lumbridge Swamp and kept outside automatic starter-kit planning.',
   },
 ];
 
