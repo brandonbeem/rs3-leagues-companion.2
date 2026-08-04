@@ -41,4 +41,8 @@ export interface ClusterTaskSummary {
   setupTasks: number;
   blockedTasks: number;
   availablePoints: number;
+  estimatedActionSeconds: number;
+  score: number;
+  confidence: number;
+  reasons: string[];
 }
