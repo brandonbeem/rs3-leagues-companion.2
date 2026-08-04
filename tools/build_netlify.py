@@ -7,8 +7,9 @@ DIST = ROOT / "dist"
 DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 SCRIPT_PATHS = [
-    "features/dependencies/dependency-engine.js",
     "features/dependencies/fort-forinthry-data.js",
+    "features/dependencies/dependency-engine.js",
+    "features/dependencies/fort-integration.js",
 ]
 
 html = SOURCE.read_text(encoding="utf-8")
@@ -29,7 +30,7 @@ script_tags = "\n".join(
 
 # Keep the source standalone file untouched and inject modular features only
 # into the Netlify build output. Avoid duplicate injection on repeated builds.
-if SCRIPT_PATHS[0] not in html:
+if SCRIPT_PATHS[-1] not in html:
     html = html.replace("</body>", f"{script_tags}\n</body>", 1)
 
 if DIST.exists():
@@ -38,4 +39,4 @@ DIST.mkdir(parents=True)
 (DIST / "index.html").write_text(html, encoding="utf-8")
 shutil.copytree(DEPENDENCY_DIR, DIST / "features" / "dependencies")
 
-print("Built RS3 Leagues Companion v21 with Fort Forinthry dependency modules")
+print("Built RS3 Leagues Companion v21 with Fort Forinthry player-state integration")
