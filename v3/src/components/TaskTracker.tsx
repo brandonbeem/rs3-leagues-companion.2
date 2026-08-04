@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DependencyInspector } from './DependencyInspector';
 import { StarterKitPanel } from './StarterKitPanel';
 import type { ItemId, RegionId } from '../core/ids';
+import { hasItemAccess } from '../core/items/itemAccess';
 import { shortestPath } from '../core/navigation/graph';
 import { usePlayer } from '../core/player/PlayerProvider';
 import type { SkillName } from '../core/player/types';
@@ -46,8 +47,7 @@ export function TaskTracker() {
       case 'quest':
         return player.questIds.includes(requirement.key);
       case 'item':
-        return player.ownedAssetIds.includes(requirement.key as ItemId)
-          || (player.inventory[requirement.key as ItemId] ?? 0) > 0;
+        return hasItemAccess(player, requirement.key as ItemId);
       case 'region':
         return isRegionUnlocked(player, requirement.key as RegionId);
       case 'unlock':
@@ -125,7 +125,7 @@ export function TaskTracker() {
           <p className="eyebrow">MILESTONE 2.3 · PHASE 2</p>
           <h1>Tasks & Resource Planning</h1>
           <p>
-            Reusable tools, banked items, and shared acquisition paths now feed the same task dependency system without adding extra clutter to each card.
+            Reusable tools, the RS3 tool belt, banked items, and shared acquisition paths feed the same task dependency system without adding extra clutter to each card.
           </p>
         </div>
         <div className="version-badge">{completedPoints} / {taskMigrationSummary.totalPoints} points</div>
@@ -140,7 +140,7 @@ export function TaskTracker() {
         <article className="metric-card">
           <span>Available now</span>
           <strong>{counts.available}</strong>
-          <small>Includes reusable tools already marked owned</small>
+          <small>Includes tools already available through the Tool Belt</small>
         </article>
         <article className="metric-card">
           <span>Setup needed</span>
