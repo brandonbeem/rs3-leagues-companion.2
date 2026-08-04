@@ -11,6 +11,7 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 STYLE_PATH = "features/dependencies/region-planner.css"
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
+    "features/dependencies/achievement-set-engine.js",
     "features/dependencies/region-registry.js",
     "features/dependencies/fort-forinthry-data.js",
     "features/dependencies/city-of-um-data.js",
@@ -44,4 +45,4 @@ for relative_path in [STYLE_PATH, *SCRIPT_PATHS]:
         raise SystemExit(f"Build output missing required asset: {relative_path}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included Misthalin progression areas, dashboard region mapping, and generic Region Planner assets")
+print("Included progression areas, dashboard region mapping, achievement checklists, and Region Planner assets")
