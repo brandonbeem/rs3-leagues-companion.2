@@ -1,4 +1,4 @@
-import type { ItemId, LocationId, RegionId, TaskId } from '../ids';
+import type { ClusterId, ItemId, LocationId, RegionId, TaskId } from '../ids';
 import type { SkillName } from '../player/types';
 import type { SourceReference, VerificationStatus } from '../world/types';
 
@@ -50,7 +50,8 @@ export interface AcquisitionStep {
 
 export interface TaskDefinition {
   id: TaskId;
-  legacyTaskId: number;
+  legacyTaskId?: number;
+  clusterId?: ClusterId;
   name: string;
   description: string;
   information: string;
