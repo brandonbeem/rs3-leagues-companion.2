@@ -4,6 +4,7 @@ import App from './App';
 import { PlayerProvider } from './core/player/PlayerProvider';
 import './styles.css';
 import './engine.css';
+import './world-foundation.css';
 
 const rootElement = document.getElementById('root');
 
