@@ -138,17 +138,68 @@
   background: #103a24;
 }
 
+.cluster-overview {
+  padding: 15px;
+  display: grid;
+  gap: 12px;
+}
+
+.cluster-overview-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cluster-overview-heading h2 { margin: 2px 0 5px; font-size: 20px; }
+.cluster-overview-heading p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 12px; }
+.cluster-overview-total {
+  min-width: 78px;
+  padding: 9px 11px;
+  display: grid;
+  text-align: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: #071810;
+}
+.cluster-overview-total strong { color: var(--green); font-size: 22px; }
+.cluster-overview-total span { color: var(--muted); font-size: 10px; }
+.cluster-overview-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.cluster-overview-item {
+  min-width: 0;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: #071810;
+}
+.cluster-overview-item > div:first-child { min-width: 0; display: grid; gap: 4px; }
+.cluster-overview-item strong { font-size: 12px; }
+.cluster-overview-item span { color: var(--muted); font-size: 9px; line-height: 1.35; }
+.cluster-overview-points { color: var(--green); font-size: 12px; font-weight: 900; }
+.cluster-overview-details summary { color: var(--green); cursor: pointer; font-size: 10px; font-weight: 800; }
+.cluster-overview-details > div { margin-top: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.cluster-overview-details span { padding: 7px 8px; display: flex; justify-content: space-between; gap: 10px; border: 1px solid var(--line-soft); border-radius: 7px; color: var(--muted); font-size: 9px; }
+.cluster-overview-details strong { color: var(--text); }
+
 @media (max-width: 1050px) {
   .starter-kit-list { grid-template-columns: 1fr; }
+  .cluster-overview-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
   .starter-kit-heading,
   .starter-kit-footer,
   .starter-kit-item,
-  .tool-belt-status-strip { display: grid; }
-  .starter-kit-total { justify-self: start; }
+  .tool-belt-status-strip,
+  .cluster-overview-heading { display: grid; }
+  .starter-kit-total,
+  .cluster-overview-total { justify-self: start; }
   .starter-kit-item .primary-button { width: 100%; }
   .owned-tool-manager > div { justify-content: flex-start; }
   .tool-belt-status-strip small { justify-self: start; }
+  .cluster-overview-list,
+  .cluster-overview-details > div { grid-template-columns: 1fr; }
 }
