@@ -3,7 +3,11 @@ import { buildResourceOpportunities } from '../core/acquisition/engine';
 import { usePlayer } from '../core/player/PlayerProvider';
 import { isTaskAllowedInRecommendedRoutes } from '../core/tasks/taskEngine';
 import { acquisitionOptionsByItem } from '../data/acquisition';
-import { itemById, items } from '../data/items';
+import {
+  itemById,
+  items,
+  toolBeltEligibleItems,
+} from '../data/items';
 import { taskById, tasks } from '../data/tasks';
 
 function formatPathStatus(status: 'available' | 'manual' | 'review' | undefined): string {
@@ -27,29 +31,42 @@ export function StarterKitPanel() {
     () => buildResourceOpportunities(eligibleTasks, player, items, acquisitionOptionsByItem, 3),
     [eligibleTasks, player],
   );
-  const ownedTools = items.filter((item) => item.persistent && player.ownedAssetIds.includes(item.id));
+  const activeToolBeltItems = toolBeltEligibleItems.filter((item) =>
+    item.availability === 'starting-tool-belt' || player.toolBeltItemIds.includes(item.id),
+  );
+  const addableToolBeltItems = toolBeltEligibleItems.filter((item) => item.availability === 'tool-belt-addable');
   const unlockedTaskCount = new Set(suggestions.flatMap((suggestion) => suggestion.opportunityTaskIds)).size;
 
   return (
     <section className="panel starter-kit-panel">
       <div className="starter-kit-heading">
         <div>
-          <p className="eyebrow">RESOURCE ENGINE</p>
-          <h2>Starter kit</h2>
+          <p className="eyebrow">TOOL BELT & RESOURCE ENGINE</p>
+          <h2>Useful setup</h2>
           <p>
-            Reusable tools are suggested only when they help with the current task pool. Mark one owned and the affected tasks update immediately.
+            Starting tool-belt items are counted automatically. Only missing reusable tools that help the current task pool are suggested here.
           </p>
         </div>
         <div className="starter-kit-total">
-          <strong>{suggestions.length}</strong>
-          <span>suggested</span>
+          <strong>{activeToolBeltItems.length}</strong>
+          <span>tools ready</span>
         </div>
+      </div>
+
+      <div className="tool-belt-status-strip">
+        <span>
+          <strong>Starting tool belt:</strong> {activeToolBeltItems
+            .filter((item) => item.availability === 'starting-tool-belt')
+            .map((item) => item.name)
+            .join(', ') || 'No starting tools recorded'}
+        </span>
+        <small>These never appear as acquisition tasks.</small>
       </div>
 
       {suggestions.length === 0 ? (
         <div className="starter-kit-complete">
           <strong>Your current reusable-tool needs are covered.</strong>
-          <span>New suggestions will appear as more task dependencies are migrated.</span>
+          <span>New suggestions will appear only when migrated tasks actually need another tool.</span>
         </div>
       ) : (
         <div className="starter-kit-list">
@@ -58,6 +75,7 @@ export function StarterKitPanel() {
             const taskNames = suggestion.opportunityTaskIds
               .map((taskId) => taskById.get(taskId)?.name)
               .filter((name): name is string => Boolean(name));
+            const isToolBeltItem = Boolean(item?.toolBeltEligible);
 
             return (
               <article className="starter-kit-item" key={suggestion.itemId}>
@@ -78,9 +96,15 @@ export function StarterKitPanel() {
                 <button
                   type="button"
                   className="primary-button"
-                  onClick={() => dispatch({ type: 'set-asset-owned', itemId: suggestion.itemId, owned: true })}
+                  onClick={() => {
+                    if (isToolBeltItem) {
+                      dispatch({ type: 'set-tool-belt-item', itemId: suggestion.itemId, added: true });
+                    } else {
+                      dispatch({ type: 'set-asset-owned', itemId: suggestion.itemId, owned: true });
+                    }
+                  }}
                 >
-                  Mark owned
+                  {isToolBeltItem ? 'Confirm on belt' : 'Mark owned'}
                 </button>
               </article>
             );
@@ -90,22 +114,24 @@ export function StarterKitPanel() {
 
       <div className="starter-kit-footer">
         <span>{unlockedTaskCount} current task{unlockedTaskCount === 1 ? '' : 's'} reference the suggested tools.</span>
-        {ownedTools.length > 0 && (
-          <details className="owned-tool-manager">
-            <summary>{ownedTools.length} reusable tool{ownedTools.length === 1 ? '' : 's'} marked owned</summary>
-            <div>
-              {ownedTools.map((item) => (
+        <details className="owned-tool-manager">
+          <summary>Manage Tool Belt ({activeToolBeltItems.length}/{toolBeltEligibleItems.length})</summary>
+          <div className="tool-belt-manager-list">
+            {addableToolBeltItems.map((item) => {
+              const added = player.toolBeltItemIds.includes(item.id);
+              return (
                 <button
                   type="button"
+                  className={added ? 'tool-belt-toggle added' : 'tool-belt-toggle'}
                   key={item.id}
-                  onClick={() => dispatch({ type: 'set-asset-owned', itemId: item.id, owned: false })}
+                  onClick={() => dispatch({ type: 'set-tool-belt-item', itemId: item.id, added: !added })}
                 >
-                  Remove {item.name}
+                  {added ? '✓' : '+'} {item.name}
                 </button>
-              ))}
-            </div>
-          </details>
-        )}
+              );
+            })}
+          </div>
+        </details>
       </div>
     </section>
   );
