@@ -64,6 +64,7 @@ export function createDefaultPlayerState(): PlayerState {
     unlockIds: [],
     preferences: {
       avoidClueTasks: true,
+      avoidQuestTasks: true,
       hideBlockedTasks: true,
       preferLowTravel: true,
       routeLength: 25,
