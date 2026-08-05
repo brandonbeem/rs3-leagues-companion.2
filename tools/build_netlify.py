@@ -26,6 +26,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-unlocked-strip-sync.js",
     "features/dependencies/task-tracker-scroll-guard.js",
     "features/dependencies/boss-planner.js",
+    "features/dependencies/boss-planner-nav-bridge.js",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
