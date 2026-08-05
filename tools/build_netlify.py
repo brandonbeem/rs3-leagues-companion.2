@@ -315,6 +315,10 @@ DIST.mkdir(parents=True, exist_ok=True)
 feature_destination = DIST / "features" / "dependencies"
 feature_destination.parent.mkdir(parents=True, exist_ok=True)
 shutil.copytree(DEPENDENCY_DIR, feature_destination)
+for removed_path in ["features/dependencies/region-planner.css", *REMOVED_SCRIPT_PATHS]:
+    obsolete_output = DIST / removed_path
+    if obsolete_output.exists():
+        obsolete_output.unlink()
 for relative_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
     output = DIST / relative_path
     if not output.exists() or output.stat().st_size == 0:
