@@ -1,3 +1,21 @@
 [build]
   command = "python3 tools/build_netlify.py"
   publish = "dist"
+
+# The app is a single-page build whose feature scripts are injected at deploy
+# time. Prevent browsers/CDNs from holding an older index or planner bundle
+# after a production release.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/features/dependencies/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
