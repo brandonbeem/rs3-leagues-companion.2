@@ -14,7 +14,7 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 TASK_BUNDLE = ROOT / "features" / "tasks" / "equilibrium" / "task-set.json.gz.b64"
 TASK_BUNDLE_DIR = TASK_BUNDLE.parent
 TASK_BUNDLE_PART_COUNT = 6
-TASK_SET_VERSION = "equilibrium-league-2026-v1"
+TASK_SET_VERSION = "equilibrium-league-2026-v2"
 EXPECTED_TASKS = 533
 EXPECTED_POINTS = 11110
 
@@ -69,7 +69,66 @@ def load_equilibrium_tasks():
     return tasks
 
 
-def app_task(task):
+LOCALITY_RULES = {
+    "Misthalin": [
+        (r"\bstronghold of player safety\b", "Edgeville"),
+        (r"\bcity of um\b|\bnecromancy ritual site\b", "City of Um"),
+        (r"\bfort forinthry\b", "Fort Forinthry"),
+        (r"\blumbridge swamp\b", "Lumbridge Swamp"),
+        (r"\bwizards?' tower\b", "Draynor Village"),
+        (r"\bdraynor\b", "Draynor Village"),
+        (r"\bedgeville\b", "Edgeville"),
+        (r"\bvarrock\b|\bgrand exchange\b", "Varrock"),
+        (r"\blumbridge\b", "Lumbridge"),
+    ],
+    "Asgarnia": [
+        (r"\bport sarim\b", "Port Sarim"), (r"\bwhite wolf mountain\b", "White Wolf Mountain"),
+        (r"\bfalador\b", "Falador"), (r"\bburthorpe\b", "Burthorpe"),
+        (r"\btaverley\b", "Taverley"), (r"\brimmington\b", "Rimmington"),
+    ],
+    "Kandarin": [
+        (r"\bseers?' village\b", "Seers' Village"), (r"\btree gnome stronghold\b", "Tree Gnome Stronghold"),
+        (r"\b(?:east|west)?\s*ardougne\b", "Ardougne"), (r"\bcatherby\b", "Catherby"),
+        (r"\byanille\b", "Yanille"),
+    ],
+    "Morytania": [
+        (r"\bburgh de rott\b", "Burgh de Rott"), (r"\bport phasmatys\b", "Port Phasmatys"),
+        (r"\bslayer tower\b", "Slayer Tower"), (r"\bdarkmeyer\b", "Darkmeyer"),
+        (r"\bcanifis\b", "Canifis"),
+    ],
+    "Desert": [
+        (r"\bal kharid\b", "Al Kharid"), (r"\bshantay pass\b", "Shantay Pass"),
+        (r"\bmenaphos\b", "Menaphos"), (r"\bsophanem\b", "Sophanem"),
+        (r"\bpollnivneach\b", "Pollnivneach"), (r"\bnardah\b", "Nardah"),
+    ],
+    "Karamja": [
+        (r"\bshilo village\b", "Shilo Village"), (r"\bmusa point\b", "Musa Point"),
+        (r"\bbrimhaven\b", "Brimhaven"), (r"\btzhaar\b|\btzhaar city\b", "TzHaar City"),
+    ],
+    "Fremennik": [
+        (r"\blunar isle\b", "Lunar Isle"), (r"\bmiscellania\b", "Miscellania"),
+        (r"\bneitiznot\b", "Neitiznot"), (r"\bjatizso\b", "Jatizso"),
+        (r"\brellekka\b", "Rellekka"),
+    ],
+    "Tirannwn": [(r"\bprifddinas\b", "Prifddinas"), (r"\blletya\b", "Lletya")],
+    "Anachronia": [(r"\banachronia\b", "Anachronia")],
+    "Wilderness": [(r"\bwilderness\b", "Wilderness")],
+    "Havenhythe": [(r"\bhavenhythe\b", "Havenhythe")],
+}
+
+
+def task_locality(task):
+    area = str(task.get("area") or "Global").strip() or "Global"
+    if area.lower() == "global":
+        return "Global"
+    text = f'{task.get("task", "")} {task.get("information", "")}'.lower()
+    for pattern, place in LOCALITY_RULES.get(area, []):
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return f"{area}: {place}"
+    return f"{area}: General"
+
+
+def app_task(task, runtime_id):
     title = task["task"]
     information = task.get("information") or title
     requirements = task.get("requirements") or "N/A"
@@ -77,12 +136,13 @@ def app_task(task):
     points = int(task["points"])
     difficulty = "Easy" if points == 10 else "Medium" if points == 30 else "Other"
     region_id = re.sub(r"[^a-z0-9]+", "-", area.lower()).strip("-")
+    locality = task_locality(task)
     return {
-        "id": task["id"], "task": title, "name": title, "title": title,
+        "id": runtime_id, "sourceId": task["id"], "task": title, "name": title, "title": title,
         "information": information, "description": information,
         "requirements": requirements, "requirement": requirements,
-        "points": points, "area": area, "region": area,
-        "regionId": region_id, "location": area,
+        "points": points, "area": area, "region": area, "locality": locality,
+        "regionId": region_id, "location": locality,
         "difficulty": difficulty, "tier": difficulty,
         "category": "General", "completed": False,
     }
@@ -139,7 +199,16 @@ def replace_embedded_tasks(html, tasks):
     old_count, start, end = max(candidates, key=lambda item: item[0])
     if old_count < 500:
         raise SystemExit(f"Refusing to replace suspiciously small task array ({old_count} task entries)")
-    replacement = json.dumps([app_task(task) for task in tasks], ensure_ascii=False, separators=(",", ":"))
+    adapted = [app_task(task, runtime_id) for runtime_id, task in enumerate(tasks, start=1)]
+    runtime_ids = [task["id"] for task in adapted]
+    source_ids = [task["sourceId"] for task in adapted]
+    if runtime_ids != list(range(1, EXPECTED_TASKS + 1)):
+        raise SystemExit("Equilibrium runtime task IDs are not sequential numeric values")
+    if len(source_ids) != len(set(source_ids)):
+        raise SystemExit("Equilibrium source task IDs are not unique")
+    if any(task["region"] != "Global" and task["locality"] == "Global" for task in adapted):
+        raise SystemExit("A region task was incorrectly adapted as globally flexible")
+    replacement = json.dumps(adapted, ensure_ascii=False, separators=(",", ":"))
     return html[:start] + replacement + html[end:], old_count
 
 
