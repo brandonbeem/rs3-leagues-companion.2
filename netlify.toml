@@ -2,6 +2,7 @@
   command = "python3 tools/build_netlify.py"
   publish = "dist"
 
+# Production redeploy trigger after restoring Netlify build capacity.
 # The app is a single-page build whose feature scripts are injected at deploy
 # time. Prevent browsers/CDNs from holding an older index or planner bundle
 # after a production release.
