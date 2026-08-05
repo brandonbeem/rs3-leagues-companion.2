@@ -20,6 +20,9 @@ SCRIPT_PATHS = [
     "features/dependencies/city-of-um-data.js",
     "features/dependencies/register-regions.js",
     "features/dependencies/region-explorer-enhancement.js",
+    "features/dependencies/region-planner-dom-guard.js",
+    "features/dependencies/region-planner-visibility-guard.js",
+    "features/dependencies/region-unlocked-strip-sync.js",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
@@ -72,4 +75,4 @@ for forbidden in (
         raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included in-page Region Explorer without the floating Region Planner overlay")
+print("Included in-page Region Planner with live unlocked-region strip synchronization")
