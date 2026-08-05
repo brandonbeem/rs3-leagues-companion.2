@@ -23,6 +23,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner-dom-guard.js",
     "features/dependencies/region-planner-visibility-guard.js",
     "features/dependencies/region-unlocked-strip-sync.js",
+    "features/dependencies/region-planner-tab-lifecycle.js",
     "features/dependencies/task-tracker-scroll-guard.js",
 ]
 
@@ -48,9 +49,17 @@ for style_path in STYLE_PATHS:
     if style_path not in html:
         html = html.replace("</head>", f'  <link rel="stylesheet" href="{style_path}">\n</head>', 1)
 
-script_tags = "\n".join(f'  <script src="{path}"></script>' for path in SCRIPT_PATHS)
-if SCRIPT_PATHS[-1] not in html:
-    html = html.replace("</body>", f"{script_tags}\n</body>", 1)
+# Add only the assets that are missing so existing guards never initialize twice.
+for script_path in SCRIPT_PATHS:
+    if script_path not in html:
+        html = html.replace("</body>", f'  <script src="{script_path}"></script>\n</body>', 1)
+
+for managed_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
+    if html.count(managed_path) != 1:
+        raise SystemExit(
+            f"Managed asset must appear exactly once in built HTML: {managed_path} "
+            f"(found {html.count(managed_path)})"
+        )
 
 if DIST.exists():
     shutil.rmtree(DIST)
@@ -76,4 +85,4 @@ for forbidden in (
         raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Restored stable Region Planner synchronization and Task Tracker scroll preservation")
+print("Scoped Region Planner to its native tab and preserved stable Task Tracker scrolling")
