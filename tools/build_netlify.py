@@ -17,10 +17,12 @@ TASK_BUNDLE_PART_COUNT = 6
 TASK_SET_VERSION = "equilibrium-league-2026-v2"
 EXPECTED_TASKS = 533
 EXPECTED_POINTS = 11110
+EXPECTED_BOSS_TASKS = 22
 
 STYLE_PATHS = [
     "features/dependencies/region-explorer-enhancement.css",
     "features/dependencies/route-list-view.css",
+    "features/dependencies/task-lanes.css",
 ]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
@@ -120,6 +122,35 @@ LOCALITY_RULES = {
 }
 
 
+# Boss tasks are a separate planning lane. Named boss encounters and explicitly
+# boss-specific achievements belong here; ordinary monster kills and combat-level
+# milestones remain in the regular progression lane.
+BOSS_ALIASES = [
+    "Zemouregal & Vorkath", "Vindicta and Gorvek", "Black Stone Dragon",
+    "Avaryss and Nymora", "Queen Black Dragon", "Commander Zilyana",
+    "King Black Dragon", "K'ril Tsutsaroth", "General Graardor",
+    "Barrows Brothers", "Dagannoth Kings", "Corporeal Beast",
+    "Chaos Elemental", "Rex Matriarchs", "Kalphite Queen", "Skeletal Trio",
+    "Kalphite King", "Bossy McBoss", "Arch-Glacor", "Gregorovic",
+    "Rammernaut", "Ambassador", "Giant Mole", "Kree'arra", "TzKal-Zuk",
+    "TzTok-Jad", "Magister", "Har-Aken", "Nakatra", "Kerapac", "Amascut",
+    "Croesus", "Helwyr", "Rasial", "Araxxi", "Raksha", "Hermod", "Vorago",
+    "Blink", "Telos", "Nex", "Ivar, King of Bones", "Silverquill, the Dreadhog",
+]
+
+
+def boss_task_metadata(task):
+    text = f'{task.get("task", "")} {task.get("information", "")}'.lower()
+    if re.search(r"\bcomplete the quest\b", text):
+        return False, ""
+    for alias in BOSS_ALIASES:
+        if alias.lower() in text:
+            return True, alias
+    if re.search(r"\bboss(?:es)?\b", text):
+        return True, "Boss encounter"
+    return False, ""
+
+
 def task_locality(task):
     area = str(task.get("area") or "Global").strip() or "Global"
     if area.lower() == "global":
@@ -140,6 +171,7 @@ def app_task(task, runtime_id):
     difficulty = "Easy" if points == 10 else "Medium" if points == 30 else "Other"
     region_id = re.sub(r"[^a-z0-9]+", "-", area.lower()).strip("-")
     locality = task_locality(task)
+    is_boss_task, boss_name = boss_task_metadata(task)
     return {
         "id": runtime_id, "sourceId": task["id"], "task": title, "name": title, "title": title,
         "information": information, "description": information,
@@ -147,7 +179,10 @@ def app_task(task, runtime_id):
         "points": points, "area": area, "region": area, "locality": locality,
         "regionId": region_id, "location": locality,
         "difficulty": difficulty, "tier": difficulty,
-        "category": "General", "completed": False,
+        "category": "Bossing" if is_boss_task else "Progression",
+        "taskType": "boss" if is_boss_task else "progression",
+        "isBossTask": is_boss_task, "bossName": boss_name,
+        "completed": False,
     }
 
 
@@ -211,6 +246,13 @@ def replace_embedded_tasks(html, tasks):
         raise SystemExit("Equilibrium source task IDs are not unique")
     if any(task["region"] != "Global" and task["locality"] == "Global" for task in adapted):
         raise SystemExit("A region task was incorrectly adapted as globally flexible")
+    boss_tasks = [task for task in adapted if task["isBossTask"]]
+    if len(boss_tasks) != EXPECTED_BOSS_TASKS or any(task["taskType"] != "boss" for task in boss_tasks):
+        raise SystemExit(
+            f"Equilibrium boss-task classification failed: expected {EXPECTED_BOSS_TASKS}, got {len(boss_tasks)}"
+        )
+    if any("complete the quest" in task["task"].lower() for task in boss_tasks):
+        raise SystemExit("A quest was incorrectly classified as a boss task")
     replacement = json.dumps(adapted, ensure_ascii=False, separators=(",", ":"))
     return html[:start] + replacement + html[end:], old_count
 
