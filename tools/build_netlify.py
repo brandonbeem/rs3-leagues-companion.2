@@ -11,6 +11,7 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 STYLE_PATHS = [
     "features/dependencies/region-explorer-enhancement.css",
+    "features/dependencies/boss-planner.css",
 ]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
@@ -24,6 +25,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner-visibility-guard.js",
     "features/dependencies/region-unlocked-strip-sync.js",
     "features/dependencies/task-tracker-scroll-guard.js",
+    "features/dependencies/boss-planner.js",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
@@ -76,4 +78,4 @@ for forbidden in (
         raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included Region Planner synchronization and Task Tracker scroll preservation")
+print("Included Region Planner, Task Tracker scroll preservation, and Boss Planner")
