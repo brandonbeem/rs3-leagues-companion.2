@@ -29,7 +29,8 @@ jobs:
           node --check features/dependencies/region-registry.js
           node --check features/dependencies/fort-forinthry-data.js
           node --check features/dependencies/register-regions.js
-          node --check features/dependencies/region-planner.js
+          node --check features/dependencies/region-planner-native.js
+          node --check features/dependencies/region-planner-native-layout.js
 
       - name: Build Netlify output
         run: python tools/build_netlify.py
@@ -37,6 +38,11 @@ jobs:
       - name: Validate build output
         run: |
           test -s dist/index.html
-          test -s dist/features/dependencies/region-planner.js
-          grep -q 'region-planner.js' dist/index.html
-          grep -q 'region-planner.css' dist/index.html
+          test -s dist/features/dependencies/region-planner-native.js
+          test -s dist/features/dependencies/region-planner-native-layout.js
+          test -s dist/features/dependencies/task-lanes.css
+          grep -q 'region-planner-native.js' dist/index.html
+          grep -q 'region-planner-native-layout.js' dist/index.html
+          grep -q 'task-lanes.css' dist/index.html
+          test ! -e dist/features/dependencies/region-planner.js
+          ! grep -q 'region-planner.css' dist/index.html
