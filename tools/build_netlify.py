@@ -18,7 +18,10 @@ TASK_SET_VERSION = "equilibrium-league-2026-v2"
 EXPECTED_TASKS = 533
 EXPECTED_POINTS = 11110
 
-STYLE_PATHS = ["features/dependencies/region-explorer-enhancement.css"]
+STYLE_PATHS = [
+    "features/dependencies/region-explorer-enhancement.css",
+    "features/dependencies/route-list-view.css",
+]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
     "features/dependencies/achievement-set-engine.js",
