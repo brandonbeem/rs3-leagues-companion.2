@@ -114,9 +114,17 @@ def find_javascript_array_end(text, start):
 
 
 def replace_embedded_tasks(html, tasks):
+    task_array_pattern = re.compile(r'window\.RS3_TASKS\s*=\s*\[')
     key_pattern = re.compile(r'(?<![\w$])(?:"tasks"|\'tasks\'|tasks)\s*:\s*\[')
     task_marker = re.compile(r'(?<![\w$])(?:"task"|\'task\'|task)\s*:')
     candidates = []
+    for match in task_array_pattern.finditer(html):
+        array_start = html.find("[", match.start())
+        array_end = find_javascript_array_end(html, array_start)
+        array_text = html[array_start:array_end]
+        marker_count = len(task_marker.findall(array_text))
+        if marker_count:
+            candidates.append((marker_count, array_start, array_end))
     app_data_start = html.find("window.RS3_APP_DATA")
     search_start = app_data_start if app_data_start >= 0 else 0
     for match in key_pattern.finditer(html, search_start):
