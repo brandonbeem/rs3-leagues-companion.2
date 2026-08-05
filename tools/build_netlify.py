@@ -46,13 +46,23 @@ html = re.sub(
     flags=re.IGNORECASE,
 )
 
+# Add each asset individually. Never append the full bundle just because one new
+# feature file is absent; doing that initializes existing guards more than once.
 for style_path in STYLE_PATHS:
     if style_path not in html:
         html = html.replace("</head>", f'  <link rel="stylesheet" href="{style_path}">\n</head>', 1)
 
-script_tags = "\n".join(f'  <script src="{path}"></script>' for path in SCRIPT_PATHS)
-if SCRIPT_PATHS[-1] not in html:
-    html = html.replace("</body>", f"{script_tags}\n</body>", 1)
+for script_path in SCRIPT_PATHS:
+    if script_path not in html:
+        html = html.replace("</body>", f'  <script src="{script_path}"></script>\n</body>', 1)
+
+# Fail early if any managed asset was accidentally included more than once.
+for managed_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
+    if html.count(managed_path) != 1:
+        raise SystemExit(
+            f"Managed asset must appear exactly once in built HTML: {managed_path} "
+            f"(found {html.count(managed_path)})"
+        )
 
 if DIST.exists():
     shutil.rmtree(DIST)
@@ -78,4 +88,4 @@ for forbidden in (
         raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included Region Planner, Task Tracker scroll preservation, and Boss Planner")
+print("Included each feature asset exactly once, including the in-page Boss Planner")
