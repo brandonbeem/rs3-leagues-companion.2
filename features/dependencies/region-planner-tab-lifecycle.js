@@ -1,33 +1,37 @@
-/* Keep the enhanced Region Planner scoped to the native Regions tab. */
+/* Keep the enhanced Region Planner scoped to the Regions sidebar tab. */
 (function initRegionPlannerTabLifecycle(global) {
   'use strict';
 
   const ROOT_ID = 'rs3-region-explorer-enhanced';
-  const NAV_LABEL = 'Regions';
-  const NAV_LABELS = [
+  const REGION_LABEL = 'Regions';
+  const APP_TAB_LABELS = new Set([
     'Dashboard', 'Route Planner', 'Task Tracker', 'Relic Planner', 'Regions',
     'My Build', 'Friends', 'Admin Mode', 'Strategy Center', 'Boss Planner'
-  ];
+  ]);
+
+  let regionsSelected = false;
 
   function text(node) {
     return String(node?.textContent || '').replace(/\s+/g, ' ').trim();
   }
 
-  function findRegionHeading() {
-    return [...document.querySelectorAll('h1,h2')].find(node => {
-      const value = text(node).toLowerCase();
-      return value === 'region planner' || value === 'region explorer';
-    }) || null;
+  function findTab(label) {
+    return [...document.querySelectorAll('button,a,[role="button"]')]
+      .find(node => text(node) === label) || null;
   }
 
-  function nativeRegionsVisible() {
-    const heading = findRegionHeading();
-    return Boolean(heading && heading.getClientRects().length && getComputedStyle(heading).visibility !== 'hidden');
+  function tabLooksActive(node) {
+    if (!node) return false;
+    return node.classList.contains('active')
+      || node.getAttribute('aria-current') === 'page'
+      || node.getAttribute('aria-selected') === 'true'
+      || /active|selected|current/i.test(node.className || '');
   }
 
   function setPlannerVisible(visible) {
     const root = document.getElementById(ROOT_ID);
-    if (!root) return;
+    if (!root) return false;
+
     root.hidden = !visible;
     if (visible) {
       root.style.removeProperty('display');
@@ -38,49 +42,42 @@
       root.style.setProperty('visibility', 'hidden', 'important');
       root.style.setProperty('pointer-events', 'none', 'important');
     }
+    return true;
   }
 
-  function syncToNativePage() {
-    setPlannerVisible(nativeRegionsVisible());
+  function applySelectedState() {
+    setPlannerVisible(regionsSelected);
   }
 
   document.addEventListener('click', event => {
     const item = event.target.closest('button,a,[role="button"]');
     if (!item) return;
+
     const label = text(item);
-    if (!NAV_LABELS.includes(label)) return;
+    if (!APP_TAB_LABELS.has(label)) return;
 
-    // Hide immediately before another page renders. When Regions is selected,
-    // wait for the native page to become visible before revealing the planner.
-    if (label !== NAV_LABEL) {
-      setPlannerVisible(false);
-      return;
-    }
+    regionsSelected = label === REGION_LABEL;
 
-    setPlannerVisible(false);
-    requestAnimationFrame(() => requestAnimationFrame(syncToNativePage));
+    // Allow the app's own tab handler to finish first. This code changes only
+    // the injected planner's visibility and never scrolls or hides other pages.
+    requestAnimationFrame(() => requestAnimationFrame(applySelectedState));
   }, true);
 
-  let queued = false;
-  const observer = new MutationObserver(() => {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-      queued = false;
-      syncToNativePage();
-    });
-  });
+  function initialise() {
+    regionsSelected = tabLooksActive(findTab(REGION_LABEL));
 
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'hidden', 'style', 'aria-hidden']
-  });
+    let attempts = 0;
+    const timer = global.setInterval(() => {
+      attempts += 1;
+      if (setPlannerVisible(regionsSelected) || attempts > 100) {
+        global.clearInterval(timer);
+      }
+    }, 100);
+  }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncToNativePage, { once: true });
+    document.addEventListener('DOMContentLoaded', initialise, { once: true });
   } else {
-    syncToNativePage();
+    initialise();
   }
 })(window);
