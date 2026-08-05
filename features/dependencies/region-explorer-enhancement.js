@@ -33,7 +33,7 @@
 
   function findNamedCard(scope, name) {
     const heading = [...scope.querySelectorAll('h2,h3,h4,strong')].find(el =>
-      el.textContent.trim().toLowerCase() === name.toLowerCase()
+      !el.closest(`#${ROOT_ID}`) && el.textContent.trim().toLowerCase() === name.toLowerCase()
     );
     return heading ? closestCard(heading) : null;
   }
@@ -111,6 +111,7 @@
   }
 
   function refreshRegion(region) {
+    if (!region.sourceCard?.isConnected) return region;
     const fresh = parseCard(region.sourceCard, region.name);
     Object.assign(region, fresh);
     return region;
@@ -123,10 +124,19 @@
       if (card) cards.add(card);
     }
     cards.forEach(card => {
+      if (!card || card.closest(`#${ROOT_ID}`)) return;
       card.dataset.rxOriginalRegionCard = 'true';
       card.hidden = true;
-      card.style.display = 'none';
+      card.style.setProperty('display', 'none', 'important');
     });
+  }
+
+  function enforceLegacyGridHidden() {
+    const root = document.getElementById(ROOT_ID);
+    const heading = findPlannerHeading();
+    if (!root || !heading) return;
+    const page = heading.closest('main,section,[role="main"]') || heading.parentElement?.parentElement || document.body;
+    hideSourceCards(page, collectRegions(page));
   }
 
   function readSelected(regions) {
@@ -203,6 +213,7 @@
       root.dataset.selectedRegion = region.id;
       saveSelected(region);
       setTimeout(() => {
+        enforceLegacyGridHidden();
         regions.forEach(refreshRegion);
         const updated = regions.find(item => item.id === region.id) || region;
         renderAll(regions, root, updated);
@@ -248,7 +259,10 @@
   }
 
   function mount() {
-    if (document.getElementById(ROOT_ID)) return true;
+    if (document.getElementById(ROOT_ID)) {
+      enforceLegacyGridHidden();
+      return true;
+    }
     const heading = findPlannerHeading();
     if (!heading) return false;
     const page = heading.closest('main,section,[role="main"]') || heading.parentElement?.parentElement || document.body;
@@ -282,10 +296,16 @@
     return true;
   }
 
-  let attempts = 0;
+  let scheduled = false;
   const observer = new MutationObserver(() => {
-    if (mount() || attempts++ > 120) observer.disconnect();
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      mount();
+      enforceLegacyGridHidden();
+    });
   });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'style', 'class'] });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true }); else mount();
 })(window);
