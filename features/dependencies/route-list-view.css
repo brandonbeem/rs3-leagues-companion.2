@@ -1,5 +1,5 @@
-/* Continuous Route Planner list view.
-   Route sessions still drive travel and scoring, but render as one checklist. */
+/* One continuous Route Planner checklist. Internal location batches still
+   optimize travel, but they are presented only as compact route markers. */
 #routeResults {
   margin-top: 10px;
   overflow: hidden;
@@ -8,129 +8,145 @@
   background: rgba(10, 20, 14, .33);
 }
 
-#routeResults > .route-session {
-  margin: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+#routeResults .route-plan-list {
+  padding: 0 14px;
 }
 
-#routeResults > .route-session + .route-session {
+#routeResults .route-location-divider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 -14px;
+  padding: 9px 14px;
   border-top: 1px solid #3a6248;
-}
-
-#routeResults .route-travel-leg {
-  min-height: 0;
-  gap: 8px;
-  padding: 7px 14px;
   border-bottom: 1px solid var(--line);
   background: rgba(13, 28, 19, .82);
 }
 
-#routeResults .route-travel-leg .travel-icon {
+#routeResults .route-location-divider:first-child {
+  border-top: 0;
+}
+
+#routeResults .route-location-icon {
+  display: grid;
   width: 24px;
   height: 24px;
-  flex-basis: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 1px solid #2e6648;
+  border-radius: 50%;
+  color: var(--green);
+  background: rgba(37, 91, 61, .45);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#routeResults .route-location-divider b {
   font-size: 12px;
 }
 
-#routeResults .route-travel-leg b {
-  font-size: 12px;
-}
-
-#routeResults .route-travel-leg .meta {
-  display: inline;
-  margin-left: 7px;
+#routeResults .route-location-divider .meta {
+  margin-left: 8px;
   font-size: 10px;
 }
 
-#routeResults .route-session-header {
-  grid-template-columns: 32px minmax(0, 1fr) auto;
-  gap: 10px;
-  padding: 9px 14px;
-  background: linear-gradient(90deg, rgba(31, 58, 43, .72), rgba(19, 34, 24, .42));
+#routeResults .route-step {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
 }
 
-#routeResults .route-stop-number {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  font-size: 14px;
-}
-
-#routeResults .route-session-title h3 {
-  margin-bottom: 2px;
-  font-size: 15px;
-}
-
-#routeResults .route-session-title .meta,
-#routeResults .route-session-summary {
-  font-size: 10px;
-}
-
-#routeResults .route-sweep-progress {
-  height: 4px;
-  margin-top: 5px;
-}
-
-#routeResults .route-session-tasks {
-  padding: 0 14px;
-}
-
-#routeResults .route-session .route-step {
-  padding-top: 11px !important;
-  padding-bottom: 11px !important;
-}
-
-#routeResults .route-session .route-step:last-child {
-  border-bottom: 1px solid var(--line);
-}
-
-#routeResults > .route-session:last-child .route-step:last-child {
+#routeResults .route-step:last-of-type {
   border-bottom: 0;
 }
 
-#routeResults .route-stop-reasons {
-  padding: 0 14px 8px 56px;
-  background: rgba(19, 34, 24, .42);
+#routeResults .skipped-actions-review,
+#routeResults .completed-actions-review {
+  margin: 12px 0;
+}
+
+#routeResults .route-deferred-items {
+  margin: 0;
+  padding: 12px 14px;
+  border-top: 1px solid #3a6248;
+  background: rgba(20, 25, 15, .48);
+}
+
+#routeResults .route-deferred-items > summary {
+  color: var(--gold);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#routeResults .route-deferred-items > .meta {
+  display: block;
+  margin: 7px 0 10px;
+}
+
+#routeResults .route-deferred-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+#routeResults .route-deferred-item .meta {
+  display: block;
+  margin-top: 3px;
+}
+
+#routeResults .route-deferred-item .btn {
+  flex: 0 0 auto;
+}
+
+.route-plan-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(31, 58, 43, .72), rgba(19, 34, 24, .42));
+}
+
+.route-plan-progress .mini-progress {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.route-plan-progress-value {
+  color: var(--green);
+  font-weight: 800;
 }
 
 html[data-theme="light"] #routeResults {
   background: #f7fbf8;
 }
 
-html[data-theme="light"] #routeResults .route-travel-leg {
-  background: #eaf5ee;
-}
-
-html[data-theme="light"] #routeResults .route-session-header,
-html[data-theme="light"] #routeResults .route-stop-reasons {
+html[data-theme="light"] #routeResults .route-location-divider,
+html[data-theme="light"] .route-plan-progress {
   background: linear-gradient(90deg, #e4f4ea, #f4faf6);
 }
 
-@media (max-width: 750px) {
-  #routeResults .route-session-header {
-    grid-template-columns: 32px minmax(0, 1fr);
-  }
-
-  #routeResults .route-session-summary {
-    grid-column: 2;
-    text-align: left;
-  }
-}
-
 @media (max-width: 520px) {
-  #routeResults .route-travel-leg,
-  #routeResults .route-session-header {
-    padding-inline: 10px;
-  }
-
-  #routeResults .route-session-tasks {
+  #routeResults .route-plan-list {
     padding-inline: 8px;
   }
 
-  #routeResults .route-stop-reasons {
-    padding-left: 50px;
+  #routeResults .route-location-divider {
+    margin-inline: -8px;
+    padding-inline: 10px;
+  }
+
+  #routeResults .route-location-divider .meta {
+    display: block;
+    margin: 2px 0 0;
+  }
+
+  #routeResults .route-deferred-item {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
