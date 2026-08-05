@@ -12,6 +12,8 @@ SOURCE = ROOT / "index.html"
 DIST = ROOT / "dist"
 DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 TASK_BUNDLE = ROOT / "features" / "tasks" / "equilibrium" / "task-set.json.gz.b64"
+TASK_BUNDLE_DIR = TASK_BUNDLE.parent
+TASK_BUNDLE_PART_COUNT = 6
 TASK_SET_VERSION = "equilibrium-league-2026-v1"
 EXPECTED_TASKS = 533
 EXPECTED_POINTS = 11110
@@ -41,10 +43,25 @@ REMOVED_SCRIPT_PATHS = [
 ]
 
 
+def read_task_bundle():
+    parts = [TASK_BUNDLE_DIR / f"task-set.part{number}.b64" for number in range(1, TASK_BUNDLE_PART_COUNT + 1)]
+    missing = [str(path.relative_to(ROOT)) for path in parts if not path.exists()]
+    if missing:
+        raise SystemExit(f"Equilibrium task bundle is missing parts: {', '.join(missing)}")
+
+    encoded = "".join(path.read_text(encoding="ascii").strip() for path in parts)
+    if len(encoded) % 4:
+        raise SystemExit(
+            f"Equilibrium task bundle has invalid base64 length: {len(encoded)}"
+        )
+    return encoded
+
+
 def load_equilibrium_tasks():
     try:
-        encoded = TASK_BUNDLE.read_text(encoding="ascii").strip()
-        payload = gzip.decompress(base64.b64decode(encoded)).decode("utf-8")
+        encoded = read_task_bundle()
+        compressed = base64.b64decode(encoded, validate=True)
+        payload = gzip.decompress(compressed).decode("utf-8")
         data = json.loads(payload)
     except Exception as exc:
         raise SystemExit(f"Unable to decode Equilibrium task bundle: {exc}") from exc
