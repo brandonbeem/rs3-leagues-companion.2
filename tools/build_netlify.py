@@ -21,6 +21,7 @@ SCRIPT_PATHS = [
     "features/dependencies/register-regions.js",
     "features/dependencies/region-explorer-enhancement.js",
     "features/dependencies/region-planner-dom-guard.js",
+    "features/dependencies/region-planner-visibility-guard.js",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
@@ -73,4 +74,4 @@ for forbidden in (
         raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included in-page Region Planner with DOM self-protection and no floating overlay")
+print("Included in-page Region Planner with strict visibility protection and no floating overlay")
