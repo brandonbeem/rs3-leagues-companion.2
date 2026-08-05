@@ -20,6 +20,7 @@ SCRIPT_PATHS = [
     "features/dependencies/city-of-um-data.js",
     "features/dependencies/register-regions.js",
     "features/dependencies/region-planner-native.js",
+    "features/dependencies/region-planner-native-layout.js",
     "features/dependencies/task-tracker-scroll-guard.js",
 ]
 
@@ -80,4 +81,4 @@ for forbidden in ("features/dependencies/region-planner.css", *REMOVED_SCRIPT_PA
         raise SystemExit(f"Floating or conflicting Region Planner code leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Region Planner now mounts inside the native Regions card container")
+print("Region Planner now mounts inside the native Regions card container with full-width layout cleanup")
