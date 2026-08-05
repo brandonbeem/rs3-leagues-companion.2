@@ -10,6 +10,7 @@
   ]);
 
   let regionsSelected = false;
+  let mountTimer = null;
 
   function text(node) {
     return String(node?.textContent || '').replace(/\s+/g, ' ').trim();
@@ -45,8 +46,36 @@
     return true;
   }
 
-  function applySelectedState() {
-    setPlannerVisible(regionsSelected);
+  function stopMountRetry() {
+    if (mountTimer !== null) {
+      global.clearInterval(mountTimer);
+      mountTimer = null;
+    }
+  }
+
+  function showPlannerWhenMounted() {
+    stopMountRetry();
+
+    let attempts = 0;
+    const tryShow = () => {
+      if (!regionsSelected) {
+        stopMountRetry();
+        return;
+      }
+      if (setPlannerVisible(true) || attempts++ >= 40) {
+        stopMountRetry();
+      }
+    };
+
+    tryShow();
+    if (mountTimer === null && regionsSelected && !document.getElementById(ROOT_ID)) {
+      mountTimer = global.setInterval(tryShow, 50);
+    }
+  }
+
+  function hidePlanner() {
+    stopMountRetry();
+    setPlannerVisible(false);
   }
 
   document.addEventListener('click', event => {
@@ -58,21 +87,20 @@
 
     regionsSelected = label === REGION_LABEL;
 
-    // Allow the app's own tab handler to finish first. This code changes only
-    // the injected planner's visibility and never scrolls or hides other pages.
-    requestAnimationFrame(() => requestAnimationFrame(applySelectedState));
+    if (!regionsSelected) {
+      hidePlanner();
+      return;
+    }
+
+    // The native Regions page and enhanced planner may mount after the click.
+    // Retry only briefly, then stop. This does not observe the document or scroll.
+    requestAnimationFrame(() => requestAnimationFrame(showPlannerWhenMounted));
   }, true);
 
   function initialise() {
     regionsSelected = tabLooksActive(findTab(REGION_LABEL));
-
-    let attempts = 0;
-    const timer = global.setInterval(() => {
-      attempts += 1;
-      if (setPlannerVisible(regionsSelected) || attempts > 100) {
-        global.clearInterval(timer);
-      }
-    }, 100);
+    if (regionsSelected) showPlannerWhenMounted();
+    else hidePlanner();
   }
 
   if (document.readyState === 'loading') {
