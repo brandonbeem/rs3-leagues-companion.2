@@ -3,14 +3,9 @@
   'use strict';
 
   const TRACKER_TITLES = ['task tracker'];
-  const JUMP_THRESHOLD = 80;
-  const MUTATION_WINDOW_MS = 300;
-
-  let stableScrollY = 0;
-  let trackerVisible = false;
+  let lastScrollY = 0;
   let restorePending = false;
-  let lastMutationAt = 0;
-  let restoring = false;
+  let trackerVisible = false;
 
   function findTrackerHeading() {
     return [...document.querySelectorAll('h1,h2')].find(element =>
@@ -24,70 +19,34 @@
     return trackerVisible;
   }
 
-  function currentScrollY() {
-    return global.scrollY || document.documentElement.scrollTop || 0;
+  function rememberPosition() {
+    if (!updateTrackerState()) return;
+    lastScrollY = global.scrollY || document.documentElement.scrollTop || 0;
   }
 
-  function restorePosition(expectedY) {
-    if (!trackerVisible || restorePending || expectedY <= 0) return;
+  function restorePosition() {
+    if (!trackerVisible || restorePending || lastScrollY <= 0) return;
     restorePending = true;
-
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         restorePending = false;
         if (!updateTrackerState()) return;
-
-        const current = currentScrollY();
-        if (current < expectedY - JUMP_THRESHOLD) {
-          restoring = true;
-          global.scrollTo({ top: expectedY, left: 0, behavior: 'auto' });
-          requestAnimationFrame(() => {
-            stableScrollY = expectedY;
-            restoring = false;
-          });
+        const current = global.scrollY || document.documentElement.scrollTop || 0;
+        if (current < lastScrollY - 40) {
+          global.scrollTo({ top: lastScrollY, left: 0, behavior: 'auto' });
         }
       });
     });
   }
 
-  function handleScroll() {
-    if (!updateTrackerState() || restoring) return;
-
-    const current = currentScrollY();
-    const recentlyMutated = Date.now() - lastMutationAt <= MUTATION_WINDOW_MS;
-    const looksLikeRerenderJump = recentlyMutated && current < stableScrollY - JUMP_THRESHOLD;
-
-    if (looksLikeRerenderJump) {
-      restorePosition(stableScrollY);
-      return;
-    }
-
-    stableScrollY = current;
-  }
-
-  function rememberBeforeUserScroll() {
-    if (!updateTrackerState()) return;
-    const current = currentScrollY();
-    if (current > stableScrollY - JUMP_THRESHOLD) stableScrollY = current;
-  }
-
-  global.addEventListener('scroll', handleScroll, { passive: true });
-  global.addEventListener('wheel', rememberBeforeUserScroll, { passive: true });
-  global.addEventListener('touchmove', rememberBeforeUserScroll, { passive: true });
-  global.addEventListener('keydown', event => {
-    if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) {
-      rememberBeforeUserScroll();
-    }
-  }, { passive: true });
+  global.addEventListener('scroll', rememberPosition, { passive: true });
+  global.addEventListener('wheel', rememberPosition, { passive: true });
+  global.addEventListener('touchmove', rememberPosition, { passive: true });
 
   const observer = new MutationObserver(() => {
     const wasVisible = trackerVisible;
     updateTrackerState();
-    if (!wasVisible || !trackerVisible) return;
-
-    lastMutationAt = Date.now();
-    const expectedY = stableScrollY;
-    restorePosition(expectedY);
+    if (wasVisible && trackerVisible) restorePosition();
   });
 
   observer.observe(document.documentElement, {
@@ -98,12 +57,8 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      updateTrackerState();
-      stableScrollY = currentScrollY();
-    }, { once: true });
+    document.addEventListener('DOMContentLoaded', updateTrackerState, { once: true });
   } else {
     updateTrackerState();
-    stableScrollY = currentScrollY();
   }
 })(window);
