@@ -19,38 +19,47 @@ SCRIPT_PATHS = [
     "features/dependencies/fort-forinthry-data.js",
     "features/dependencies/city-of-um-data.js",
     "features/dependencies/register-regions.js",
-    "features/dependencies/region-explorer-enhancement.js",
-    "features/dependencies/region-planner-dom-guard.js",
-    "features/dependencies/region-planner-visibility-guard.js",
-    "features/dependencies/region-unlocked-strip-sync.js",
+    "features/dependencies/region-planner-native.js",
+    "features/dependencies/region-planner-native-layout.js",
     "features/dependencies/task-tracker-scroll-guard.js",
 ]
 
-subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
+REMOVED_SCRIPT_PATHS = [
+    "features/dependencies/region-planner.js",
+    "features/dependencies/region-explorer-enhancement.js",
+    "features/dependencies/region-unlocked-strip-sync.js",
+    "features/dependencies/region-planner-tab-lifecycle.js",
+    "features/dependencies/region-planner-dom-guard.js",
+    "features/dependencies/region-planner-visibility-guard.js",
+]
 
+subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
 html = SOURCE.read_text(encoding="utf-8")
 
-# Remove stale overlay tags that may already exist in the standalone source.
 html = re.sub(
     r'\s*<link\b[^>]*href=["\']features/dependencies/region-planner\.css["\'][^>]*>\s*',
-    "\n",
-    html,
-    flags=re.IGNORECASE,
+    "\n", html, flags=re.IGNORECASE,
 )
-html = re.sub(
-    r'\s*<script\b[^>]*src=["\']features/dependencies/region-planner\.js["\'][^>]*>\s*</script>\s*',
-    "\n",
-    html,
-    flags=re.IGNORECASE,
-)
+for removed_path in REMOVED_SCRIPT_PATHS:
+    html = re.sub(
+        rf'\s*<script\b[^>]*src=["\']{re.escape(removed_path)}["\'][^>]*>\s*</script>\s*',
+        "\n", html, flags=re.IGNORECASE,
+    )
 
 for style_path in STYLE_PATHS:
     if style_path not in html:
         html = html.replace("</head>", f'  <link rel="stylesheet" href="{style_path}">\n</head>', 1)
 
-script_tags = "\n".join(f'  <script src="{path}"></script>' for path in SCRIPT_PATHS)
-if SCRIPT_PATHS[-1] not in html:
-    html = html.replace("</body>", f"{script_tags}\n</body>", 1)
+for script_path in SCRIPT_PATHS:
+    if script_path not in html:
+        html = html.replace("</body>", f'  <script src="{script_path}"></script>\n</body>', 1)
+
+for managed_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
+    if html.count(managed_path) != 1:
+        raise SystemExit(f"Managed asset must appear exactly once: {managed_path} (found {html.count(managed_path)})")
+for removed_path in REMOVED_SCRIPT_PATHS:
+    if removed_path in html:
+        raise SystemExit(f"Obsolete Region Planner script leaked into build: {removed_path}")
 
 if DIST.exists():
     shutil.rmtree(DIST)
@@ -67,13 +76,9 @@ for relative_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
         raise SystemExit(f"Build output missing required asset: {relative_path}")
 
 built_html = (DIST / "index.html").read_text(encoding="utf-8")
-for forbidden in (
-    "features/dependencies/region-planner.css",
-    "features/dependencies/region-planner.js",
-    "rs3-region-planner",
-):
+for forbidden in ("features/dependencies/region-planner.css", *REMOVED_SCRIPT_PATHS, "rs3-region-planner"):
     if forbidden in built_html:
-        raise SystemExit(f"Floating Region Planner leaked into build: {forbidden}")
+        raise SystemExit(f"Floating or conflicting Region Planner code leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Included Region Planner synchronization and Task Tracker scroll preservation")
+print("Region Planner now mounts inside the native Regions card container with full-width layout cleanup")
