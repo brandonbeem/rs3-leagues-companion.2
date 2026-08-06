@@ -1,0 +1,48 @@
+.route-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:9px}
+.route-action-buttons .route-complete,
+.route-action-buttons .route-action-button{
+  margin:0!important;
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:0;
+  padding:5px 11px!important;
+  border:1px solid rgba(102,205,135,.34);
+  border-radius:999px;
+  background:#1D5837!important;
+  color:#F1FFF5;
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  cursor:pointer;
+  transition:.14s ease;
+  box-shadow:none;
+}
+.route-action-buttons .route-complete input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+.route-action-buttons .route-complete:hover,
+.route-action-buttons .route-action-button:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.12);
+  border-color:#78D996;
+}
+.route-action-buttons .route-complete:focus-within,
+.route-action-buttons .route-action-button:focus-visible{
+  outline:2px solid #9CFFB3;
+  outline-offset:2px;
+}
+.route-action-buttons .route-action-button.skip{
+  background:#23352A!important;
+  color:#DCE8E0;
+  border-color:#405C49;
+}
+.route-action-buttons .route-action-button.alternative{
+  padding:5px 9px!important;
+  background:transparent!important;
+  border-color:#615B39;
+  color:#D9CF91;
+}
