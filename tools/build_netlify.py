@@ -11,6 +11,7 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 STYLE_PATHS = [
     "features/dependencies/region-explorer-enhancement.css",
+    "features/dependencies/task-tracker-enhancements.css",
 ]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
@@ -23,6 +24,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner-native-layout.js",
     "features/dependencies/task-tracker-scroll-guard.js",
     "features/dependencies/route-planner-removal.js",
+    "features/dependencies/task-tracker-enhancements.js",
 ]
 
 REMOVED_SCRIPT_PATHS = [
@@ -91,4 +93,4 @@ for forbidden in ("rs3-region-planner", *REMOVED_STYLE_PATHS, *REMOVED_SCRIPT_PA
         raise SystemExit(f"Conflicting or removed code leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Region Planner mounts natively; Route Planner is removed from production navigation")
+print("Region Planner mounts natively; Route Planner is removed; Task Tracker enhancements are enabled")
