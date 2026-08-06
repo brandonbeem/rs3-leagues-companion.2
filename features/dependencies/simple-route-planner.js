@@ -1,102 +1,131 @@
-/* Simple level-aware Route Planner.
- * Replaces visible area sweeps with a ranked task list while retaining hidden location intelligence.
+/* Fresh-account-aware simple Route Planner.
+ * Shows only realistic tasks for the player's current progression tier.
+ * Location knowledge is used privately; no area sweeps or travel directions are shown.
  */
 (function(){
   const LIMIT_DEFAULT=20;
-  const escValue=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const completedSet=()=>new Set((state.completed||[]).map(Number));
   function skippedSet(){state.simpleRouteSkipped=Array.isArray(state.simpleRouteSkipped)?state.simpleRouteSkipped:[];return new Set(state.simpleRouteSkipped.map(Number))}
-  function currentStage(){
+  function text(task){return `${task?.task||''} ${task?.information||''} ${task?.requirements||''} ${task?.locality||''}`.toLowerCase()}
+  function requirements(task){try{return typeof parseRequirements==='function'?parseRequirements(task):[]}catch{return[]}}
+  function level(skill){return Number(state.levels?.[skill])||1}
+  function progressionTier(){
     const levels=Object.values(state.levels||{}).map(Number).filter(Number.isFinite);
     const highest=levels.length?Math.max(...levels):1;
+    const average=levels.length?levels.reduce((a,b)=>a+b,0)/levels.length:1;
     const done=completedSet().size;
-    if(highest>=30||done>=35)return 2;
-    if(highest>=10||done>=10)return 1;
+    if(highest>=50||average>=25||done>=60)return 3;
+    if(highest>=30||average>=15||done>=35)return 2;
+    if(highest>=10||average>=5||done>=12)return 1;
     return 0;
   }
-  function taskText(task){return `${task?.task||''} ${task?.information||''} ${task?.requirements||''} ${task?.locality||''}`.toLowerCase()}
-  function requirements(task){try{return typeof parseRequirements==='function'?parseRequirements(task):[]}catch{return[]}}
-  function hiddenSetup(task){
-    const text=taskText(task);
-    const stage=currentStage();
-    const blocks=[];
-    if(/soul reaper|reaper task|boss task|defeat .*boss|hard mode|enrage/.test(text))blocks.push('bossing');
-    if(/quest points?|complete \d+ quests?|grandmaster quest|master quest/.test(text))blocks.push('quest progression');
-    if(/dragon bones?|baby dragon bones?|frost dragon bones?|dinosaur bones?/.test(text))blocks.push('rare or combat-gated supplies');
-    if(/impling|hunter creatures?|chinchompa|big game hunter|butterfl(?:y|ies)|salamander/.test(text))blocks.push('Hunter setup');
-    if(/clue|treasure trail|collection log/.test(text))blocks.push('random or long-form activity');
-    if(/edgeville|fort forinthry|city of um|varrock|grand exchange|archaeology campus|dig site/.test(text)&&stage===0)blocks.push('outside the opening Lumbridge cluster');
-    if(/(?:catch|kill|bury|craft|make|mine|chop|cook|smith|smelt|complete|obtain)\s+(?:over\s+)?(?:50|75|100|150|200|250|500|1000|1,000)\b/.test(text))blocks.push('large quantity grind');
-    if(/obtain .*75|reach .*50|reach .*60|reach .*70|reach .*80|reach .*90|reach .*99/.test(text)&&stage===0)blocks.push('long-term milestone');
-    return blocks;
+
+  const STARTER_PATTERNS=[
+    /talk to hans/,/find out how old/,/kill a chicken/,/kill a cow/,/milk (?:a )?cow/,
+    /bury (?:some |a set of )?bones(?!.*dragon)/,/cook (?:a |some |raw )?(?:shrimp|crayfish|chicken|meat|food)/,
+    /chop (?:down )?(?:a )?(?:normal )?tree/,/light (?:a )?fire/,
+    /catch (?:a |some )?(?:raw )?(?:shrimp|crayfish)/,/mine (?:some |a )?(?:copper|tin)(?: ore)?/,
+    /smelt (?:a )?bronze bar/,/smith (?:a )?bronze/,/complete the archaeology tutorial/,
+    /activate (?:the )?lumbridge lodestone/,/use (?:the )?lumbridge lodestone/
+  ];
+  const EARLY_PATTERNS=[
+    /reach level (?:5|10|15|20) /,/chop (?:an? )?oak/,/catch (?:a |some )?(?:trout|salmon)/,
+    /cook (?:a |some )?(?:trout|salmon)/,/mine (?:some |a )?iron/,/smelt (?:an? )?iron bar/,
+    /smith (?:an? )?iron/,/complete cook'?s assistant/,/complete sheep shearer/,
+    /complete rune mysteries/,/steal from (?:a )?(?:stall|man|woman)/,/chop (?:a )?willow/
+  ];
+
+  const ALWAYS_BLOCK=[
+    /soul reaper|reaper task|boss task|hard mode|enrage|defeat .*boss/,
+    /quest points?|complete \d+ quests?|grandmaster quest|master quest/,
+    /dragon bones?|baby dragon bones?|frost dragon bones?|dinosaur bones?/,
+    /impling|hunter creatures?|chinchompa|big game hunter|butterfl(?:y|ies)|salamander/,
+    /clue|treasure trail|collection log/,
+    /naragi engram|engram from orla|dragon mask|masterwork weapon|bladed dive|shattered worlds/,
+    /unlock all (?:of the )?lodestones|hard lumbridge|elite lumbridge|medium lumbridge/,
+    /complete 15 slayer tasks|complete \d+ slayer tasks/,
+    /equip any .*mask|equip any masterwork/,
+    /(?:catch|kill|bury|craft|make|mine|chop|cook|smith|smelt|complete|obtain)\s+(?:over\s+)?(?:50|75|100|150|200|250|500|1000|1,000)\b/
+  ];
+
+  function matchesAny(value,patterns){return patterns.some(pattern=>pattern.test(value))}
+  function maxRequiredLevel(task){const reqs=requirements(task);return reqs.length?Math.max(...reqs.map(r=>Number(r.level)||1)):1}
+  function blocked(task){
+    const value=text(task),tier=progressionTier();
+    if(matchesAny(value,ALWAYS_BLOCK))return true;
+    if(tier===0&&/edgeville|fort forinthry|city of um|varrock|grand exchange|archaeology campus|dig site|draynor|wizard'?s tower/.test(value)){
+      if(!/complete the archaeology tutorial/.test(value))return true;
+    }
+    if(tier===0&&maxRequiredLevel(task)>1)return true;
+    if(tier===1&&maxRequiredLevel(task)>25)return true;
+    if(tier===2&&maxRequiredLevel(task)>50)return true;
+    return false;
   }
-  function starterFriendly(task){
-    const text=taskText(task);
-    return /talk to hans|find out how old|kill a chicken|bury (?:some|a set of)? ?bones|cook (?:a piece|some|an?)|chop (?:down )?(?:a )?tree|light (?:a )?fire|catch (?:a )?(?:shrimp|crayfish)|mine (?:some |a )?(?:copper|tin)|milk (?:a )?cow|complete the archaeology tutorial/.test(text);
+  function tierAllowed(task){
+    const value=text(task),tier=progressionTier();
+    if(tier===0)return matchesAny(value,STARTER_PATTERNS);
+    if(tier===1)return matchesAny(value,STARTER_PATTERNS)||matchesAny(value,EARLY_PATTERNS)||maxRequiredLevel(task)<=20;
+    if(tier===2)return maxRequiredLevel(task)<=45;
+    return true;
   }
   function eligible(task){
     const region=String(task.region||task.locality||'');
     if(!/misthalin|global/i.test(region))return false;
     if(completedSet().has(Number(task.id))||skippedSet().has(Number(task.id)))return false;
-    if(!requirements(task).every(req=>(Number(state.levels?.[req.skill])||1)>=Number(req.level||1)))return false;
-    if(hiddenSetup(task).length)return false;
+    if(!requirements(task).every(req=>level(req.skill)>=Number(req.level||1)))return false;
+    if(blocked(task)||!tierAllowed(task))return false;
     return true;
   }
-  function taskMinutes(task){
-    const text=taskText(task);
-    if(/1000|1,000|500\b/.test(text))return 90;
-    if(/200\b|150\b|100\b/.test(text))return 45;
-    if(/75 quest points?|50 quest points?/.test(text))return 240;
-    if(/soul reaper|boss task/.test(text))return 60;
+  function minutes(task){
+    const value=text(task);
+    if(/talk to hans|find out how old|activate .*lumbridge lodestone/.test(value))return 1;
+    if(/kill a chicken|kill a cow|bury .*bones|chop .*tree|light .*fire|milk .*cow/.test(value))return 2;
+    if(/catch .*shrimp|catch .*crayfish|cook .*shrimp|cook .*crayfish|mine .*copper|mine .*tin/.test(value))return 3;
+    if(/archaeology tutorial|smelt .*bronze|smith .*bronze/.test(value))return 5;
     try{if(typeof taskBaseMinutes==='function')return Math.max(1,Math.round(taskBaseMinutes(task)))}catch{}
-    if(/talk to hans|find out how old|kill a chicken|bury (?:some )?bones|light (?:a )?fire|chop (?:down )?(?:a )?tree|milk (?:a )?cow/.test(text))return 2;
-    if(/cook|catch (?:a )?(?:shrimp|crayfish)|mine (?:some |a )?(?:copper|tin)|tutorial/.test(text))return 4;
     return 10;
   }
   function score(task){
-    const stage=currentStage();
+    const value=text(task),tier=progressionTier();
     const cluster=window.RS3_MISTHALIN_PROGRESSION?.clusterFor?.(task);
-    const mins=taskMinutes(task);
-    const reqs=requirements(task);
-    const points=Number(task.points)||0;
-    let value=120-(mins*5)+(Math.min(points,80)/10)-(reqs.length*4);
+    let result=200-minutes(task)*8+Math.min(Number(task.points)||0,80)/10;
+    if(tier===0&&matchesAny(value,STARTER_PATTERNS))result+=150;
+    if(/talk to hans|find out how old/.test(value))result+=120;
+    if(/kill a chicken/.test(value))result+=100;
+    if(/bury .*bones(?!.*dragon)/.test(value))result+=90;
+    if(/chop .*tree|light .*fire|catch .*shrimp|catch .*crayfish|cook .*|mine .*copper|mine .*tin|milk .*cow/.test(value))result+=75;
     if(cluster){
-      if(cluster.stage<=stage)value+=30;
-      else value-=80*(cluster.stage-stage);
-      if(stage===0&&cluster.id==='lumbridge-castle')value+=55;
-      if(stage===0&&cluster.area==='Lumbridge')value+=35;
+      if(tier===0&&cluster.id==='lumbridge-castle')result+=60;
+      if(tier===0&&cluster.area==='Lumbridge')result+=45;
+      if(cluster.stage>tier)result-=100*(cluster.stage-tier);
     }
-    if(stage===0&&starterFriendly(task))value+=100;
-    const text=taskText(task);
-    if(/talk to hans|find out how old/.test(text))value+=75;
-    if(/kill a chicken/.test(text))value+=55;
-    if(/bury (?:some )?bones|cook|chop.*tree|light.*fire|catch.*(?:shrimp|crayfish)|mine.*(?:copper|tin)|milk.*cow/.test(text))value+=45;
-    if(/requires? [2-9]\d|requires? \d{3}/.test(text)&&stage===0)value-=200;
-    return value;
+    return result;
   }
   function recommendations(){
     const requested=Number(state.optimizerLength)||LIMIT_DEFAULT;
-    return (DATA.tasks||[]).filter(eligible).map(task=>({task,score:score(task),minutes:taskMinutes(task)})).sort((a,b)=>b.score-a.score||a.minutes-b.minutes||Number(a.task.id)-Number(b.task.id)).slice(0,requested);
+    return (DATA.tasks||[]).filter(eligible).map(task=>({task,score:score(task),minutes:minutes(task)}))
+      .sort((a,b)=>b.score-a.score||a.minutes-b.minutes||Number(a.task.id)-Number(b.task.id)).slice(0,requested);
   }
   function row(item,index){
-    const task=item.task;
-    const reqs=requirements(task);
-    const requirementText=reqs.length?` · Requires ${reqs.map(r=>`${r.level} ${r.skill}`).join(', ')}`:'';
+    const task=item.task,reqs=requirements(task);
+    const reqText=reqs.length?` · Requires ${reqs.map(r=>`${r.level} ${r.skill}`).join(', ')}`:'';
     return `<article class="simple-route-task" data-simple-route-task="${Number(task.id)}" tabindex="0">
       <div class="simple-route-number">${index+1}</div>
-      <div class="simple-route-copy"><strong>${escValue(task.task)}</strong><div class="simple-route-meta">${Number(task.points)||0} pts · ~${item.minutes} min${escValue(requirementText)}</div></div>
+      <div class="simple-route-copy"><strong>${esc(task.task)}</strong><div class="simple-route-meta">${Number(task.points)||0} pts · ~${item.minutes} min${esc(reqText)}</div></div>
       <div class="simple-route-actions"><button type="button" class="simple-route-pill complete" data-simple-complete="${Number(task.id)}">✓ Complete</button><button type="button" class="simple-route-pill skip" data-simple-skip="${Number(task.id)}">▷ Skip</button></div>
     </article>`;
   }
   function render(){
     const results=document.getElementById('routeResults');if(!results)return;
-    const tasks=recommendations();
+    const tasks=recommendations(),tier=progressionTier();
     document.getElementById('routeNextAction')?.replaceChildren();
     document.getElementById('routeOverview')?.replaceChildren();
     const flow=document.getElementById('regionFlowPanel');if(flow)flow.hidden=true;
     const alt=document.getElementById('routeAlternativePanel');if(alt)alt.hidden=true;
-    const status=document.getElementById('optimizerStatus');if(status)status.textContent=`${tasks.length} realistic tasks available for your current account`;
-    results.innerHTML=tasks.length?tasks.map(row).join(''):'<div class="empty">No realistic Misthalin tasks are available at the current levels. Update your stats or restore a skipped task.</div>';
+    const status=document.getElementById('optimizerStatus');
+    if(status)status.textContent=tasks.length?`${tasks.length} realistic tasks for progression tier ${tier+1}`:'No safe tasks match this progression tier yet';
+    results.innerHTML=tasks.length?tasks.map(row).join(''):'<div class="empty">No verified beginner-safe tasks are available right now. Update your stats or restore a skipped task. The planner will not fill the list with unrealistic milestones.</div>';
     bind();
   }
   function complete(id){
@@ -105,9 +134,7 @@
     else if(!completedSet().has(Number(id))){state.completed=[...(state.completed||[]),Number(id)];save?.()}
     showToast?.(`${task?.task||'Task'} completed.`);render();
   }
-  function skip(id){
-    const set=skippedSet();set.add(Number(id));state.simpleRouteSkipped=[...set];save?.();showToast?.('Task skipped for now.');render();
-  }
+  function skip(id){const set=skippedSet();set.add(Number(id));state.simpleRouteSkipped=[...set];save?.();showToast?.('Task skipped for now.');render()}
   function bind(){
     document.querySelectorAll('[data-simple-complete]').forEach(button=>button.onclick=()=>complete(button.dataset.simpleComplete));
     document.querySelectorAll('[data-simple-skip]').forEach(button=>button.onclick=()=>skip(button.dataset.simpleSkip));
@@ -116,7 +143,7 @@
     const generate=document.getElementById('generateRoute');
     if(generate){generate.textContent='Refresh recommendations';generate.addEventListener('click',event=>{event.stopImmediatePropagation();render()},true)}
     const heading=document.querySelector('#optimizer h1');if(heading)heading.textContent='Recommended Tasks';
-    const lead=document.querySelector('#optimizer .lead');if(lead)lead.textContent='A fresh-account-aware guide showing realistic tasks you can complete now. Location and setup requirements stay behind the scenes.';
+    const lead=document.querySelector('#optimizer .lead');if(lead)lead.textContent='Only tasks that are realistic for your current account progression are shown. The list may be shorter than 20 rather than include bad recommendations.';
     document.addEventListener('keydown',event=>{
       if(!document.getElementById('optimizer')?.classList.contains('active')||/input|textarea|select/i.test(event.target?.tagName||''))return;
       const first=document.querySelector('.simple-route-task');if(!first)return;
@@ -128,5 +155,5 @@
     if(document.getElementById('optimizer')?.classList.contains('active'))render();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
-  window.RS3SimpleRoutePlanner={render,recommendations,hiddenSetup};
+  window.RS3SimpleRoutePlanner={render,recommendations,progressionTier,blocked};
 })();
