@@ -8,6 +8,19 @@
     'Havenhythe','Kandarin','Karamja','Misthalin','Morytania','Wilderness'
   ];
 
+  function removeOutdatedTaskSetNotice(){
+    const phrases = [
+      'Equilibrium League task set',
+      'these 1,117 tasks are Equilibrium League task data',
+      'Version 15 keeps strategy rules separate'
+    ];
+    document.querySelectorAll('main div, main section, main aside, [role="main"] div, [role="main"] section, [role="main"] aside').forEach(element => {
+      if(element.children.length > 4) return;
+      const text = (element.textContent || '').replace(/\s+/g,' ').trim();
+      if(text && phrases.some(phrase => text.includes(phrase))) element.remove();
+    });
+  }
+
   function regionNames(){
     const fromTasks = (DATA.tasks || []).map(task => String(task.region || '').trim()).filter(Boolean);
     return [...new Set([...CANONICAL_REGIONS, ...fromTasks])].sort((a,b) => a.localeCompare(b));
@@ -109,12 +122,13 @@
   }
 
   function enhancedRenderTasks(){
+    removeOutdatedTaskSetNotice();
     const search = (document.getElementById('taskSearch')?.value || '').toLowerCase();
     const points = document.getElementById('pointsFilter')?.value || '';
     const status = document.getElementById('statusFilter')?.value || '';
     const done = new Set((state.completed || []).map(Number));
     const filtered = (DATA.tasks || []).filter(task => {
-      const text = `${task.task||''} ${task.information||''} ${task.requirements||''} ${task.locality||''}`.toLowerCase();
+      const text = `${task.task||''} ${task.information||''} ${task.requirements||''} ${task.locality||''} ${task.category||''} ${task.taskType||''} ${task.bossName||''}`.toLowerCase();
       return (!search || text.includes(search)) &&
         (!selectedRegions.size || selectedRegions.has(String(task.region||''))) &&
         (!points || String(task.points) === points) &&
@@ -123,7 +137,7 @@
 
     const body = document.getElementById('taskBody');
     if(!body) return;
-    body.innerHTML = filtered.slice(0,500).map(task => {
+    body.innerHTML = filtered.map(task => {
       const difficulty = difficultyFor(task.points);
       return `<tr class="${done.has(Number(task.id))?'done':''}">
         <td data-label="Done"><input class="check" aria-label="Mark ${escHtml(task.task)} complete" type="checkbox" data-id="${task.id}" ${done.has(Number(task.id))?'checked':''}></td>
@@ -135,11 +149,12 @@
       </tr>`;
     }).join('');
     const count = document.getElementById('taskCount');
-    if(count) count.textContent = `Showing ${Math.min(filtered.length,500).toLocaleString()} of ${filtered.length.toLocaleString()} matching tasks${filtered.length>500?' (refine filters to see more)':''}.`;
+    if(count) count.textContent = `Showing all ${filtered.length.toLocaleString()} matching tasks.`;
     body.querySelectorAll('.check').forEach(check => check.onchange = () => setTaskCompleted(check.dataset.id, check.checked, {recalculate:false}));
   }
 
   function setup(){
+    removeOutdatedTaskSetNotice();
     buildFilterLayout();
     const header = document.querySelector('#taskBody')?.closest('table')?.querySelector('thead th:last-child');
     if(header) header.textContent = 'Type';
@@ -151,6 +166,7 @@
     enhancedRenderTasks();
 
     const observer = new MutationObserver(() => {
+      removeOutdatedTaskSetNotice();
       if(!document.getElementById('taskFilterLayout')) buildFilterLayout();
       const lastHeader = document.querySelector('#taskBody')?.closest('table')?.querySelector('thead th:last-child');
       if(lastHeader && lastHeader.textContent.trim() !== 'Type') lastHeader.textContent = 'Type';
