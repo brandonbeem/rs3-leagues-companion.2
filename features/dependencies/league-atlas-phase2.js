@@ -1,96 +1,21 @@
 (()=>{
   const REGION_DEFS=[
-    {id:'tirannwn',names:['Tirannwn','Elven Lands'],color:'#5fc9cf',path:'M48 290 L58 261 L72 244 L92 238 L105 214 L126 203 L151 210 L161 233 L171 253 L163 277 L170 302 L151 329 L131 350 L103 348 L82 340 L68 324 L58 310 Z',fragments:['M41 265 L49 258 L55 266 L51 275 L43 274 Z','M87 210 L95 202 L104 206 L101 216 L91 218 Z'],label:[111,287],sub:'ELVEN LANDS'},
-    {id:'fremennik',names:['Fremennik','Fremennik Province'],color:'#c07b32',path:'M103 108 L119 89 L145 78 L169 74 L190 82 L207 71 L231 82 L248 99 L269 113 L262 137 L252 159 L230 170 L201 174 L177 183 L149 170 L123 162 L110 142 Z',fragments:['M72 101 L86 89 L96 91 L96 105 L84 111 L74 108 Z','M56 128 L65 119 L76 121 L79 132 L68 140 L58 137 Z','M224 66 L232 56 L244 58 L247 68 L237 74 Z'],label:[186,126],sub:'PROVINCE'},
-    {id:'kandarin',names:['Kandarin'],color:'#6549a5',path:'M119 193 L145 181 L170 184 L193 170 L222 176 L246 187 L270 190 L294 205 L306 228 L301 251 L309 274 L294 298 L282 322 L260 336 L235 348 L210 360 L186 351 L164 337 L145 324 L128 303 L115 282 L112 257 L118 234 Z',fragments:['M101 184 L112 172 L123 176 L120 188 L110 193 Z','M301 292 L316 286 L323 298 L316 309 L302 306 Z'],label:[211,263]},
-    {id:'karamja',names:['Karamja'],color:'#4f9429',path:'M277 329 L295 318 L315 309 L334 318 L349 334 L364 346 L358 369 L355 393 L344 407 L321 414 L301 408 L286 395 L274 375 L269 352 Z',fragments:['M360 318 L370 312 L378 319 L375 328 L365 330 Z'],label:[319,365]},
-    {id:'asgarnia',names:['Asgarnia'],color:'#c34d4d',path:'M290 170 L313 164 L335 155 L359 151 L378 160 L394 174 L410 188 L407 211 L413 235 L407 259 L411 280 L399 300 L386 320 L371 336 L349 329 L329 319 L311 314 L298 295 L285 277 L280 255 L284 230 L281 207 Z',fragments:['M273 157 L282 147 L294 151 L292 163 L281 168 Z'],label:[348,244]},
-    {id:'wilderness',names:['Wilderness'],color:'#2e3334',path:'M365 87 L389 86 L411 87 L435 84 L457 86 L480 84 L505 86 L520 98 L535 112 L552 132 L548 153 L544 177 L541 204 L520 211 L499 220 L479 230 L456 219 L434 209 L412 195 L394 183 L377 166 L366 149 L370 126 Z',fragments:['M340 80 L352 72 L364 76 L363 88 L351 92 Z','M532 73 L545 65 L558 70 L557 84 L545 90 Z'],label:[454,145]},
-    {id:'misthalin',names:['Misthalin'],color:'#2e66c9',path:'M405 224 L425 218 L447 214 L469 208 L491 210 L510 220 L530 231 L551 241 L553 262 L551 283 L552 315 L537 327 L522 340 L502 354 L481 348 L461 343 L438 337 L423 326 L410 312 L396 298 L390 282 L394 260 Z',fragments:['M493 196 L503 188 L514 191 L514 202 L504 207 Z'],label:[474,281]},
-    {id:'morytania',names:['Morytania'],color:'#34743f',path:'M548 219 L568 224 L590 225 L612 229 L631 239 L647 251 L663 261 L684 272 L678 291 L670 313 L661 336 L642 342 L621 349 L600 356 L581 346 L564 335 L549 317 L551 296 L547 273 L550 246 Z',fragments:['M682 236 L694 229 L705 234 L704 246 L692 251 Z','M699 323 L710 316 L720 321 L718 332 L707 337 Z'],label:[611,282]},
-    {id:'desert',names:['Kharidian Desert','Desert'],color:'#d6bd4d',path:'M436 349 L458 344 L480 341 L516 340 L534 351 L552 367 L574 389 L570 414 L565 441 L561 486 L548 501 L531 519 L505 538 L486 530 L462 518 L439 507 L428 486 L419 461 L405 425 L414 401 L423 376 Z',fragments:['M462 544 L474 537 L485 543 L482 554 L470 559 Z','M505 553 L516 548 L527 553 L525 565 L513 569 Z'],label:[491,421],sub:'DESERT'},
-    {id:'anachronia',names:['Anachronia'],color:'#c985d3',path:'M670 74 L690 65 L714 57 L737 49 L760 52 L783 57 L811 65 L826 80 L838 95 L850 111 L846 133 L840 153 L832 174 L812 180 L794 188 L775 192 L755 185 L735 180 L710 171 L699 154 L685 141 L676 125 L678 102 Z',fragments:['M653 83 L663 76 L672 81 L669 91 L659 94 Z','M818 52 L827 43 L838 47 L838 58 L828 62 Z','M851 88 L862 81 L872 86 L870 97 L859 101 Z'],label:[760,119]},
-    {id:'havenhythe',names:['Havenhythe'],color:'#815047',path:'M842 253 L861 247 L880 239 L900 231 L920 238 L938 247 L951 259 L956 279 L959 300 L960 337 L948 354 L938 370 L925 385 L904 383 L883 379 L865 372 L856 355 L847 338 L836 319 L839 298 L837 276 Z',fragments:['M820 272 L831 264 L841 269 L839 280 L828 284 Z','M944 221 L955 214 L966 219 L964 230 L953 234 Z'],label:[900,309]}
+    {id:'tirannwn',names:['Tirannwn','Elven Lands'],color:'#56c4c7',path:'M45 292 H56 V258 H68 V235 H82 V218 H104 V204 H126 V211 H148 V225 H160 V247 H169 V281 H160 V314 H146 V337 H128 V352 H94 V344 H73 V326 H58 V307 H45 Z',fragments:['M31 270 H43 V258 H54 V272 H45 V283 H31 Z','M84 201 H96 V189 H108 V201 H99 V212 H84 Z'],label:[108,282],sub:'ELVEN LANDS',labelW:112},
+    {id:'fremennik',names:['Fremennik Province','Fremennik'],color:'#c17b2f',path:'M92 110 H104 V92 H123 V80 H146 V72 H172 V79 H192 V68 H218 V77 H239 V91 H258 V106 H271 V126 H262 V148 H249 V164 H225 V175 H198 V179 H173 V187 H145 V176 H121 V164 H105 V145 H92 Z',fragments:['M58 94 H72 V82 H87 V96 H82 V108 H66 V114 H58 Z','M43 128 H54 V116 H67 V120 H74 V134 H63 V145 H48 V140 H43 Z'],label:[182,126],sub:'PROVINCE',labelW:126},
+    {id:'kandarin',names:['Kandarin'],color:'#6549a5',path:'M111 194 H132 V182 H158 V177 H182 V168 H207 V174 H232 V184 H259 V190 H282 V203 H299 V222 H307 V246 H300 V267 H309 V286 H297 V307 H284 V326 H262 V340 H237 V350 H211 V362 H187 V354 H164 V342 H145 V329 H128 V310 H116 V290 H108 V266 H113 V244 H109 V220 Z',fragments:['M94 185 H106 V173 H118 V184 H113 V195 H100 Z'],label:[210,267],labelW:92},
+    {id:'karamja',names:['Karamja'],color:'#4f9429',path:'M267 333 H283 V320 H306 V311 H329 V318 H344 V330 H360 V345 H366 V366 H357 V385 H354 V402 H337 V413 H313 V418 H291 V405 H279 V389 H269 V369 H263 V350 Z',label:[316,365],labelW:88},
+    {id:'asgarnia',names:['Asgarnia'],color:'#c34d4d',path:'M278 168 H299 V159 H324 V151 H352 V146 H376 V155 H392 V169 H409 V185 H414 V207 H408 V226 H416 V246 H409 V268 H414 V286 H402 V304 H390 V323 H373 V338 H351 V331 H330 V320 H310 V314 H298 V296 H286 V279 H279 V257 H284 V235 H279 V213 H282 V191 Z',label:[348,245],labelW:94},
+    {id:'wilderness',names:['Wilderness'],color:'#2f3435',path:'M362 83 H390 V86 H418 V82 H446 V85 H474 V82 H505 V87 H523 V98 H538 V112 H553 V131 H549 V154 H545 V178 H542 V202 H523 V213 H501 V220 H479 V231 H456 V220 H434 V211 H411 V197 H393 V185 H377 V166 H365 V149 H369 V126 H362 Z',fragments:['M337 79 H350 V68 H363 V80 H359 V91 H344 Z','M531 72 H544 V62 H559 V75 H555 V88 H540 Z'],label:[454,144],labelW:108},
+    {id:'misthalin',names:['Misthalin'],color:'#2e66c9',path:'M391 227 H414 V218 H439 V213 H468 V207 H493 V212 H514 V221 H533 V233 H553 V244 H557 V265 H551 V286 H555 V314 H541 V329 H523 V342 H502 V356 H480 V350 H459 V344 H438 V338 H421 V326 H409 V312 H396 V299 H389 V282 H394 V261 H389 Z',label:[474,281],labelW:96},
+    {id:'morytania',names:['Morytania'],color:'#34743f',path:'M547 219 H568 V224 H592 V226 H615 V231 H635 V240 H651 V251 H667 V262 H684 V275 H680 V293 H671 V315 H662 V338 H641 V345 H620 V351 H600 V359 H581 V348 H564 V337 H549 V318 H552 V297 H547 V274 H551 V250 H547 Z',fragments:['M682 233 H696 V224 H708 V238 H703 V250 H690 Z','M699 321 H712 V313 H724 V327 H719 V339 H706 Z'],label:[612,283],labelW:98},
+    {id:'desert',names:['Kharidian Desert','Desert'],color:'#d4bb48',path:'M432 350 H457 V344 H482 V340 H516 V345 H536 V354 H553 V370 H575 V389 H571 V414 H566 V441 H562 V487 H549 V503 H532 V520 H507 V540 H485 V532 H462 V520 H439 V509 H427 V488 H419 V464 H404 V427 H412 V402 H422 V376 Z',fragments:['M460 545 H475 V536 H488 V550 H482 V562 H468 Z','M504 554 H518 V545 H531 V559 H526 V571 H512 Z'],label:[491,421],sub:'DESERT',labelW:132},
+    {id:'anachronia',names:['Anachronia'],color:'#c985d3',path:'M668 76 H689 V65 H714 V56 H739 V48 H762 V52 H785 V58 H812 V66 H828 V81 H840 V96 H852 V113 H847 V135 H841 V155 H833 V176 H813 V183 H793 V190 H774 V194 H753 V186 H733 V181 H710 V173 H699 V156 H686 V142 H675 V126 H679 V103 H668 Z',fragments:['M650 84 H663 V73 H675 V85 H670 V97 H657 Z','M818 51 H831 V40 H843 V54 H838 V65 H825 Z','M851 87 H865 V78 H877 V92 H872 V103 H859 Z'],label:[760,119],labelW:104},
+    {id:'havenhythe',names:['Havenhythe'],color:'#815047',path:'M836 255 H857 V247 H880 V238 H901 V230 H921 V237 H940 V247 H954 V261 H960 V282 H964 V303 H962 V338 H950 V356 H940 V372 H927 V387 H904 V384 H883 V380 H864 V373 H855 V356 H846 V340 H835 V320 H839 V299 H835 V278 Z',fragments:['M817 273 H830 V262 H843 V275 H838 V287 H824 Z','M944 220 H958 V210 H970 V224 H965 V236 H951 Z'],label:[900,309],labelW:108}
   ];
   const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
-
-  function findAtlasCard(){
-    const heading=[...document.querySelectorAll('h1,h2,h3,h4,b,strong')].find(el=>/league atlas/i.test((el.textContent||'').trim()));
-    if(!heading)return null;
-    let node=heading;
-    for(let i=0;i<6&&node;i++,node=node.parentElement){
-      if(node.querySelector?.('svg')&&(node.innerText||'').toLowerCase().includes('unlocked regions'))return node;
-    }
-    return heading.parentElement;
-  }
-
-  function legacyRegionInfo(svg,def){
-    const candidates=[...svg.querySelectorAll('g,path,polygon')];
-    let target=null;
-    for(const el of candidates){
-      const text=(el.textContent||'').trim();
-      const data=Object.values(el.dataset||{}).join(' ');
-      const aria=el.getAttribute?.('aria-label')||'';
-      const title=el.querySelector?.('title')?.textContent||'';
-      const hay=norm([text,data,aria,title,el.id,el.getAttribute?.('class')].join(' '));
-      if(def.names.some(name=>hay.includes(norm(name)))){target=el;break;}
-    }
-    if(!target){
-      const textNode=[...svg.querySelectorAll('text')].find(el=>def.names.some(name=>norm(el.textContent).includes(norm(name))));
-      target=textNode?.closest('g')||textNode?.parentElement||null;
-    }
-    if(!target)return {target:null,unlocked:def.id==='misthalin',selected:def.id==='misthalin'};
-    const cls=(target.getAttribute?.('class')||'').toLowerCase();
-    const path=target.matches?.('path,polygon')?target:target.querySelector?.('path,polygon');
-    const fill=(path?.getAttribute('fill')||getComputedStyle(path||target).fill||'').toLowerCase();
-    const stroke=(path?.getAttribute('stroke')||getComputedStyle(path||target).stroke||'').toLowerCase();
-    const locked=/locked|disabled/.test(cls)||/rgb\((3[5-9]|4[0-9]|5[0-9]),\s*(3[5-9]|4[0-9]|5[0-9])/.test(fill);
-    const selected=/selected|active|current/.test(cls)||stroke.includes('255, 216')||stroke.includes('#ffd');
-    const unlocked=!locked&&(!/none|transparent/.test(fill)||/unlocked|active|selected/.test(cls));
-    return {target,unlocked:selected||unlocked,selected};
-  }
-
-  function markup(states){
-    const regions=REGION_DEFS.map(def=>{
-      const state=states.get(def.id)||{};
-      const cls=`atlas-region ${state.unlocked?'unlocked':'locked'} ${state.selected?'selected':''}`;
-      const label=def.sub?`<text x="${def.label[0]}" y="${def.label[1]-7}">${def.names[0]}</text><text class="atlas-sub" x="${def.label[0]}" y="${def.label[1]+12}">${def.sub}</text>`:`<text x="${def.label[0]}" y="${def.label[1]}">${def.names[0]}</text>`;
-      const fragments=(def.fragments||[]).map(d=>`<path class="atlas-fragment" d="${d}"/>`).join('');
-      return `<g class="${cls}" tabindex="0" role="button" aria-label="${def.names[0]} ${state.unlocked?'unlocked':'locked'}" data-atlas-region="${def.id}" style="--region-color:${def.color}"><path class="atlas-mainland" d="${def.path}"/>${fragments}${label}</g>`;
-    }).join('');
-    return `<div class="league-atlas-v2-legend"><span><i class="u"></i>Unlocked</span><span><i class="l"></i>Locked</span><span><i class="s"></i>Selected</span></div><div class="league-atlas-v2-wrap"><svg class="league-atlas-v2" viewBox="25 28 960 545" aria-label="Interactive League Atlas"><defs><pattern id="atlasHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="10" height="10" fill="#293130"/><rect width="3" height="10" fill="#202726"/></pattern></defs><path class="atlas-watermark" d="M97 246 C220 179 340 205 421 254 C512 307 610 230 731 184"/>${regions}</svg><p class="league-atlas-v2-note">Unlocked regions are illuminated. Select an available region to open its task list.</p></div>`;
-  }
-
-  function install(){
-    const card=findAtlasCard();
-    if(!card||card.dataset.atlasPhase2==='true')return false;
-    const legacy=card.querySelector('svg');
-    if(!legacy)return false;
-    const states=new Map();
-    REGION_DEFS.forEach(def=>states.set(def.id,legacyRegionInfo(legacy,def)));
-    legacy.classList.add('league-atlas-legacy');
-    const host=document.createElement('div');
-    host.dataset.leagueAtlasPhase2='true';
-    host.innerHTML=markup(states);
-    legacy.insertAdjacentElement('afterend',host);
-    host.querySelectorAll('[data-atlas-region]').forEach(region=>{
-      const activate=()=>{
-        const info=states.get(region.dataset.atlasRegion);
-        if(!info?.unlocked)return;
-        if(info.target){info.target.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));}
-        else window.dispatchEvent(new CustomEvent('rs3:league-region-selected',{detail:{regionId:region.dataset.atlasRegion}}));
-        host.querySelectorAll('.atlas-region').forEach(el=>el.classList.toggle('selected',el===region));
-      };
-      region.addEventListener('click',activate);
-      region.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
-    });
-    card.dataset.atlasPhase2='true';
-    return true;
-  }
-
-  const run=()=>{if(!install())setTimeout(install,250)};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
-  const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(()=>{const card=findAtlasCard();if(card&&!card.querySelector('[data-league-atlas-phase2]')){card.dataset.atlasPhase2='';install();}},120)});
-  observer.observe(document.documentElement,{childList:true,subtree:true});
-  window.addEventListener('rs3:regions-updated',()=>{const card=findAtlasCard();if(card){card.querySelector('[data-league-atlas-phase2]')?.remove();card.dataset.atlasPhase2='';card.querySelector('svg')?.classList.remove('league-atlas-legacy');install();}});
+  function findAtlasCard(){const heading=[...document.querySelectorAll('h1,h2,h3,h4,b,strong')].find(el=>/league atlas/i.test((el.textContent||'').trim()));if(!heading)return null;let node=heading;for(let i=0;i<6&&node;i++,node=node.parentElement){if(node.querySelector?.('svg')&&(node.innerText||'').toLowerCase().includes('unlocked regions'))return node;}return heading.parentElement;}
+  function legacyRegionInfo(svg,def){const candidates=[...svg.querySelectorAll('g,path,polygon')];let target=null;for(const el of candidates){const hay=norm([(el.textContent||''),Object.values(el.dataset||{}).join(' '),el.getAttribute?.('aria-label')||'',el.querySelector?.('title')?.textContent||'',el.id,el.getAttribute?.('class')].join(' '));if(def.names.some(name=>hay.includes(norm(name)))){target=el;break;}}if(!target){const textNode=[...svg.querySelectorAll('text')].find(el=>def.names.some(name=>norm(el.textContent).includes(norm(name))));target=textNode?.closest('g')||textNode?.parentElement||null;}if(!target)return {target:null,unlocked:def.id==='misthalin',selected:def.id==='misthalin'};const cls=(target.getAttribute?.('class')||'').toLowerCase();const path=target.matches?.('path,polygon')?target:target.querySelector?.('path,polygon');const fill=(path?.getAttribute('fill')||getComputedStyle(path||target).fill||'').toLowerCase();const stroke=(path?.getAttribute('stroke')||getComputedStyle(path||target).stroke||'').toLowerCase();const locked=/locked|disabled/.test(cls)||/rgb\((3[5-9]|4[0-9]|5[0-9]),\s*(3[5-9]|4[0-9]|5[0-9])/.test(fill);const selected=/selected|active|current/.test(cls)||stroke.includes('255, 216')||stroke.includes('#ffd');const unlocked=!locked&&(!/none|transparent/.test(fill)||/unlocked|active|selected/.test(cls));return {target,unlocked:selected||unlocked,selected};}
+  function markup(states){const regions=REGION_DEFS.map(def=>{const state=states.get(def.id)||{};const cls=`atlas-region ${state.unlocked?'unlocked':'locked'} ${state.selected?'selected':''}`;const fragments=(def.fragments||[]).map(d=>`<path class="atlas-fragment" d="${d}"/>`).join('');const w=def.labelW||100;const y=def.label[1]-(def.sub?21:15);const label=`<g class="atlas-label"><rect x="${def.label[0]-w/2}" y="${y}" width="${w}" height="${def.sub?42:30}"/><text x="${def.label[0]}" y="${def.label[1]-(def.sub?7:0)}">${def.names[0]}</text>${def.sub?`<text class="atlas-sub" x="${def.label[0]}" y="${def.label[1]+11}">${def.sub}</text>`:''}</g>`;return `<g class="${cls}" tabindex="0" role="button" aria-label="${def.names[0]} ${state.unlocked?'unlocked':'locked'}" data-atlas-region="${def.id}" style="--region-color:${def.color}"><path class="atlas-mainland" d="${def.path}"/>${fragments}${label}</g>`;}).join('');return `<div class="league-atlas-v2-legend"><span><i class="u"></i>Unlocked</span><span><i class="l"></i>Locked</span><span><i class="s"></i>Selected</span></div><div class="league-atlas-v2-wrap"><svg class="league-atlas-v2" viewBox="25 28 960 545" aria-label="Interactive pixel League Atlas"><defs><pattern id="atlasDither" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#303536"/><rect width="6" height="6" fill="#3c4243"/><rect x="6" y="6" width="6" height="6" fill="#3c4243"/></pattern><pattern id="atlasPixelNoise" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="var(--region-color)"/><rect width="4" height="4" fill="rgba(255,255,255,.08)"/><rect x="12" y="12" width="4" height="4" fill="rgba(0,0,0,.12)"/></pattern></defs>${regions}</svg><p class="league-atlas-v2-note">Unlocked regions are illuminated. Select an available region to open its task list.</p></div>`;}
+  function install(){const card=findAtlasCard();if(!card||card.dataset.atlasPhase2==='true')return false;const legacy=card.querySelector('svg');if(!legacy)return false;const states=new Map();REGION_DEFS.forEach(def=>states.set(def.id,legacyRegionInfo(legacy,def)));legacy.classList.add('league-atlas-legacy');const host=document.createElement('div');host.dataset.leagueAtlasPhase2='true';host.innerHTML=markup(states);legacy.insertAdjacentElement('afterend',host);host.querySelectorAll('[data-atlas-region]').forEach(region=>{const activate=()=>{const info=states.get(region.dataset.atlasRegion);if(!info?.unlocked)return;if(info.target)info.target.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));else window.dispatchEvent(new CustomEvent('rs3:league-region-selected',{detail:{regionId:region.dataset.atlasRegion}}));host.querySelectorAll('.atlas-region').forEach(el=>el.classList.toggle('selected',el===region));};region.addEventListener('click',activate);region.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});card.dataset.atlasPhase2='true';return true;}
+  const run=()=>{if(!install())setTimeout(install,250)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(()=>{const card=findAtlasCard();if(card&&!card.querySelector('[data-league-atlas-phase2]')){card.dataset.atlasPhase2='';install();}},120)});observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('rs3:regions-updated',()=>{const card=findAtlasCard();if(card){card.querySelector('[data-league-atlas-phase2]')?.remove();card.dataset.atlasPhase2='';card.querySelector('svg')?.classList.remove('league-atlas-legacy');install();}});
 })();
