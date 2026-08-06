@@ -14,6 +14,8 @@ scripts = [
 ]
 removed_styles = [
     "features/dependencies/region-planner.css",
+    "features/dependencies/route-list-view.css",
+    "features/dependencies/task-lanes.css",
     "features/dependencies/route-action-controls.css",
     "features/dependencies/simple-route-planner.css",
 ]
