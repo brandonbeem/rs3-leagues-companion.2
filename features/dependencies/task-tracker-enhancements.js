@@ -3,10 +3,14 @@
   const selectedRegions = new Set();
   const difficultyFor = points => ({10:'Easy',30:'Medium',80:'Hard',200:'Elite',400:'Master'}[Number(points)] || 'Special');
   const escHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
+  const CANONICAL_REGIONS = [
+    'Anachronia','Asgarnia','Desert','Elven Lands','Fremennik','Global',
+    'Havenhythe','Kandarin','Karamja','Misthalin','Morytania','Wilderness'
+  ];
 
   function regionNames(){
-    return [...new Set((DATA.tasks || []).map(task => String(task.region || '').trim()).filter(Boolean))]
-      .sort((a,b) => a.localeCompare(b));
+    const fromTasks = (DATA.tasks || []).map(task => String(task.region || '').trim()).filter(Boolean);
+    return [...new Set([...CANONICAL_REGIONS, ...fromTasks])].sort((a,b) => a.localeCompare(b));
   }
 
   function makeFilterCard(title, element, className){
