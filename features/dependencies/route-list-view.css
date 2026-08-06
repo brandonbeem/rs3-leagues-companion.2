@@ -1,0 +1,78 @@
+/* v10-style Route Planner output: one direct list of generated tasks. */
+#routeResults {
+  margin-top: 10px;
+}
+
+#routeResults .route-plan-list {
+  width: 100%;
+}
+
+#routeResults .route-step {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+#routeResults .route-step:last-child {
+  border-bottom: 0;
+}
+
+#routeResults .route-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+#routeResults .route-v10-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 9px;
+}
+
+#routeResults .route-v10-controls .route-complete {
+  margin: 0 4px 0 0;
+}
+
+#routeResults .route-v10-button {
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+#routeResults .route-v10-button:hover {
+  border-color: var(--green);
+  color: var(--text);
+}
+
+#routeResults .route-v10-button.replace {
+  border-color: rgba(212, 175, 55, .55);
+  color: var(--gold);
+}
+
+#routeResults .route-score {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 650px) {
+  #routeResults .route-step {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  #routeResults .route-score {
+    grid-column: 2;
+    text-align: left;
+  }
+}

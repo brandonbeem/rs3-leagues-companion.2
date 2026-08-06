@@ -1,0 +1,86 @@
+.task-lane-badge {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: 2px 7px;
+  border: 1px solid rgba(115, 255, 174, .28);
+  border-radius: 999px;
+  color: #aef8c7;
+  background: rgba(29, 128, 75, .12);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.task-lane-badge.boss {
+  border-color: rgba(255, 184, 94, .42);
+  color: #ffd28a;
+  background: rgba(157, 78, 20, .18);
+}
+
+.boss-task-row { background: rgba(137, 66, 22, .055); }
+
+.task-lane-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.task-lane-summary button,
+.task-lane-button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 13px 15px;
+  border: 1px solid var(--border, #28543c);
+  border-radius: 12px;
+  color: inherit;
+  background: rgba(8, 31, 20, .72);
+  text-align: left;
+  cursor: pointer;
+}
+
+.task-lane-summary button:hover,
+.task-lane-button:hover,
+.task-lane-button.active {
+  border-color: #2bcf7c;
+  background: rgba(27, 96, 57, .25);
+}
+
+.task-lane-summary button b { justify-self: end; font-size: 18px; }
+.task-lane-summary button > span:last-child,
+.task-lane-button span { grid-column: 1 / -1; color: var(--muted, #9ec8ad); font-size: 12px; }
+
+.task-lane-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 7px 0 13px;
+}
+
+.task-lane-button b { font-size: 14px; }
+.task-lane-button[aria-pressed="true"]::before { content: "✓"; color: #58f69a; font-weight: 900; }
+.task-lane-button:not([aria-pressed="true"])::before { content: ""; }
+
+.task-lane-inline,
+.region-task-lanes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  color: var(--muted, #9ec8ad);
+  font-size: 12px;
+}
+
+.region-task-lanes {
+  margin: 10px 0;
+  padding: 9px 0;
+  border-block: 1px solid rgba(73, 150, 101, .2);
+}
+
+@media (max-width: 680px) {
+  .task-lane-summary,
+  .task-lane-choices { grid-template-columns: 1fr; }
+}
