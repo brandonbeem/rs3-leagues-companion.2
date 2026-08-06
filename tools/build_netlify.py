@@ -11,6 +11,7 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 STYLE_PATHS = [
     "features/dependencies/region-explorer-enhancement.css",
+    "features/dependencies/route-action-controls.css",
 ]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
@@ -22,6 +23,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner-native.js",
     "features/dependencies/region-planner-native-layout.js",
     "features/dependencies/task-tracker-scroll-guard.js",
+    "features/dependencies/route-action-controls.js",
 ]
 
 REMOVED_SCRIPT_PATHS = [
@@ -81,4 +83,4 @@ for forbidden in ("features/dependencies/region-planner.css", *REMOVED_SCRIPT_PA
         raise SystemExit(f"Floating or conflicting Region Planner code leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Region Planner now mounts inside the native Regions card container with full-width layout cleanup")
+print("Region Planner mounts natively and Route Planner action controls are injected for production")
