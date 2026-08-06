@@ -153,6 +153,54 @@
 #taskBody .task-type-master{color:#ffc4c4 !important;background:#792b2b !important;border-color:#bd4d4d !important}
 #taskBody .task-type-special{color:#d1ecff !important;background:#365d76 !important;border-color:#5e8ca9 !important}
 
+.task-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:14px 0 22px;
+  padding:12px;
+  border:1px solid rgba(65,111,80,.72);
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(17,47,32,.96),rgba(11,37,25,.96));
+  box-shadow:0 10px 28px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.02);
+}
+.task-pagination[hidden]{display:none!important}
+.task-page-numbers{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.task-page-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:38px;
+  min-height:36px;
+  padding:7px 11px;
+  border:1px solid rgba(64,112,80,.78);
+  border-radius:8px;
+  background:rgba(24,66,43,.84);
+  color:var(--text,#f4f2df);
+  font:inherit;
+  font-size:.82rem;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  transition:background .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+.task-page-button:hover:not(:disabled){
+  background:rgba(42,102,67,.92);
+  border-color:rgba(54,229,123,.58);
+  transform:translateY(-1px);
+  box-shadow:0 5px 14px rgba(0,0,0,.2),0 0 0 2px rgba(54,229,123,.08);
+}
+.task-page-button:focus-visible{outline:none;border-color:var(--accent,#36e57b);box-shadow:0 0 0 3px rgba(54,229,123,.16)}
+.task-page-button.active{
+  background:var(--accent,#36e57b);
+  border-color:var(--accent,#36e57b);
+  color:#062313;
+  box-shadow:0 0 14px rgba(54,229,123,.26),inset 0 1px 0 rgba(255,255,255,.28);
+}
+.task-page-button:disabled{opacity:.38;cursor:not-allowed}
+.task-page-nav{min-width:105px}
+
 @media(max-width:1180px){
   .task-filter-layout{grid-template-columns:1fr;grid-template-areas:"regions" "side" "search"}
   .task-region-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -164,4 +212,6 @@
   .task-filter-mini{flex:1}
   .task-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .task-filter-side{grid-template-columns:1fr}
+  .task-pagination{align-items:stretch;flex-direction:column}
+  .task-page-nav{width:100%}
 }
