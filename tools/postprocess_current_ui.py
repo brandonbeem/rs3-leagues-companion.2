@@ -12,11 +12,13 @@ html = INDEX.read_text(encoding="utf-8")
 styles = [
     "features/dependencies/task-tracker-enhancements.css",
     "features/dependencies/relic-planner-stability.css",
+    "features/dependencies/league-atlas-phase2.css",
 ]
 scripts = [
     "features/dependencies/route-planner-removal.js",
     "features/dependencies/task-tracker-enhancements.js",
     "features/dependencies/relic-planner-stability.js",
+    "features/dependencies/league-atlas-phase2.js",
 ]
 
 # These are the five additional relic records plus the v20.2 finalizer. In the
@@ -92,8 +94,8 @@ if relic_marker not in html:
 relic_tags = "\n".join(f'  <script src="{path}"></script>' for path in relic_scripts)
 html = html.replace(relic_marker, f'{relic_tags}\n  {relic_marker}', 1)
 
-# Current Task Tracker, Route Planner-removal behavior, and Relic Planner
-# stability fixes can load after the app.
+# Current Task Tracker, Route Planner-removal behavior, Relic Planner stability,
+# and the Phase 2 League Atlas can load after the app.
 for path in scripts:
     html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
@@ -113,10 +115,15 @@ for path in relic_scripts:
     output = DIST / path
     if not output.exists() or output.stat().st_size == 0:
         raise SystemExit(f"Relic expansion asset is missing from build output: {path}")
-for path in ("features/dependencies/relic-planner-stability.css", "features/dependencies/relic-planner-stability.js"):
+for path in (
+    "features/dependencies/relic-planner-stability.css",
+    "features/dependencies/relic-planner-stability.js",
+    "features/dependencies/league-atlas-phase2.css",
+    "features/dependencies/league-atlas-phase2.js",
+):
     output = DIST / path
     if not output.exists() or output.stat().st_size == 0:
-        raise SystemExit(f"Relic Planner stability asset is missing from build output: {path}")
+        raise SystemExit(f"Current UI asset is missing from build output: {path}")
 
 marker_position = html.index(relic_marker)
 for path in relic_scripts:
@@ -124,4 +131,4 @@ for path in relic_scripts:
         raise SystemExit(f"Relic data loaded too late, after planner initialization: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied Task Tracker layout, restored working 15-relic initialization order, stabilized Relic Planner scrolling, and kept Route Planner removed")
+print("Applied Task Tracker layout, restored working 15-relic initialization order, stabilized Relic Planner scrolling, added the Phase 2 League Atlas, and kept Route Planner removed")
