@@ -12,45 +12,55 @@
       element.getAttribute('data-target'),
       element.getAttribute('data-section'),
       element.getAttribute('href'),
-      element.id,
-      element.className
+      element.id
     ].filter(Boolean).join(' ').toLowerCase();
     return text === 'route planner' || /(^|[#\s_-])(optimizer|route[-_ ]?planner)($|[\s_-])/.test(target);
   }
 
+  function hideElement(element){
+    if (!element || element.dataset.routePlannerRemoved === 'true') return;
+    element.dataset.routePlannerRemoved = 'true';
+    element.hidden = true;
+    element.style.display = 'none';
+    element.setAttribute('aria-hidden', 'true');
+    element.setAttribute('tabindex', '-1');
+  }
+
   function hideRoutePlanner(){
+    const routeWasActive = ROUTE_SECTION_IDS.some(id => document.getElementById(id)?.classList.contains('active'));
+
     ROUTE_SECTION_IDS.forEach(id => {
       const section = document.getElementById(id);
-      if (section) {
-        section.hidden = true;
-        section.classList.remove('active');
-        section.setAttribute('aria-hidden', 'true');
-      }
+      if (!section) return;
+      section.classList.remove('active');
+      hideElement(section);
     });
 
     document.querySelectorAll('a, button, [role="button"], .nav-item, .sidebar-item').forEach(element => {
-      if (isRouteControl(element)) {
-        element.hidden = true;
-        element.style.display = 'none';
-        element.setAttribute('aria-hidden', 'true');
-        element.setAttribute('tabindex', '-1');
-      }
+      if (isRouteControl(element)) hideElement(element);
     });
 
-    const routeActive = ROUTE_SECTION_IDS.some(id => document.getElementById(id)?.classList.contains('active'));
-    if (routeActive) {
+    if (routeWasActive) {
       const dashboardControl = [...document.querySelectorAll('a, button, [role="button"], .nav-item, .sidebar-item')]
-        .find(element => (element.textContent || '').trim().toLowerCase() === 'dashboard');
+        .find(element => (element.textContent || '').trim().toLowerCase() === 'dashboard' && !element.hidden);
       dashboardControl?.click();
     }
   }
 
   function setup(){
     hideRoutePlanner();
-    const observer = new MutationObserver(hideRoutePlanner);
-    observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:['class','style','hidden']});
+    let queued = false;
+    const observer = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        hideRoutePlanner();
+      });
+    });
+    observer.observe(document.body, {subtree:true, childList:true});
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup, {once:true});
   else setup();
 })();
