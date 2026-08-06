@@ -26,8 +26,39 @@
   margin-top: 6px;
 }
 
-#routeResults .route-v10-complete .route-complete {
+#routeResults .route-v10-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
   margin-top: 9px;
+}
+
+#routeResults .route-v10-controls .route-complete {
+  margin: 0 4px 0 0;
+}
+
+#routeResults .route-v10-button {
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+#routeResults .route-v10-button:hover {
+  border-color: var(--green);
+  color: var(--text);
+}
+
+#routeResults .route-v10-button.replace {
+  border-color: rgba(212, 175, 55, .55);
+  color: var(--gold);
 }
 
 #routeResults .route-score {
