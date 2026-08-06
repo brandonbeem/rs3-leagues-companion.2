@@ -1,64 +1,107 @@
-/* Task Tracker enhancements: multi-region filtering and task difficulty labels. */
+/* Task Tracker enhancements: visible multi-region panel and task difficulty labels. */
 (function(){
   const selectedRegions = new Set();
   const difficultyFor = points => ({10:'Easy',30:'Medium',80:'Hard',200:'Elite',400:'Master'}[Number(points)] || 'Special');
-  const escHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const escHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
 
   function regionNames(){
     return [...new Set((DATA.tasks || []).map(task => String(task.region || '').trim()).filter(Boolean))]
       .sort((a,b) => a.localeCompare(b));
   }
 
-  function buildRegionPicker(){
-    const select = document.getElementById('regionFilter');
-    if(!select || document.getElementById('taskRegionMulti')) return;
-    select.hidden = true;
-    select.style.display = 'none';
-
-    const wrap = document.createElement('details');
-    wrap.id = 'taskRegionMulti';
-    wrap.className = 'task-region-multi';
-    wrap.innerHTML = `
-      <summary><span id="taskRegionSummary">All regions</span><span class="task-region-caret">▾</span></summary>
-      <div class="task-region-menu">
-        <label class="task-region-option task-region-all"><input type="checkbox" id="taskRegionAll" checked> <span>All regions</span></label>
-        <div id="taskRegionOptions"></div>
-      </div>`;
-    select.insertAdjacentElement('afterend', wrap);
-    populateRegionPicker();
+  function makeFilterCard(title, element, className){
+    const card = document.createElement('section');
+    card.className = `task-filter-card ${className}`;
+    const label = document.createElement('div');
+    label.className = 'task-filter-card-title';
+    label.textContent = title;
+    card.append(label, element);
+    return card;
   }
 
-  function populateRegionPicker(){
-    const options = document.getElementById('taskRegionOptions');
-    if(!options) return;
-    const valid = new Set(regionNames());
-    [...selectedRegions].forEach(region => { if(!valid.has(region)) selectedRegions.delete(region); });
-    options.innerHTML = regionNames().map(region => `
-      <label class="task-region-option"><input type="checkbox" value="${escHtml(region)}" ${selectedRegions.has(region)?'checked':''}> <span>${escHtml(region)}</span></label>`).join('');
-    options.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
-      input.checked ? selectedRegions.add(input.value) : selectedRegions.delete(input.value);
-      syncRegionPicker();
-      enhancedRenderTasks();
-    }));
-    const all = document.getElementById('taskRegionAll');
-    if(all) all.onchange = () => {
-      if(all.checked) selectedRegions.clear();
-      populateRegionPicker();
-      syncRegionPicker();
+  function buildFilterLayout(){
+    if(document.getElementById('taskFilterLayout')) return;
+    const regionSelect = document.getElementById('regionFilter');
+    const points = document.getElementById('pointsFilter');
+    const status = document.getElementById('statusFilter');
+    const search = document.getElementById('taskSearch');
+    if(!regionSelect || !points || !status || !search) return;
+
+    regionSelect.hidden = true;
+    regionSelect.style.display = 'none';
+
+    const layout = document.createElement('div');
+    layout.id = 'taskFilterLayout';
+    layout.className = 'task-filter-layout';
+    layout.innerHTML = `
+      <section class="task-region-panel">
+        <div class="task-region-panel-head">
+          <div>
+            <div class="task-filter-card-title">Regions</div>
+            <div id="taskRegionCount" class="task-region-count">All regions selected</div>
+          </div>
+          <div class="task-region-panel-actions">
+            <button type="button" id="taskRegionSelectAll" class="task-filter-mini">Select all</button>
+            <button type="button" id="taskRegionClear" class="task-filter-mini">Clear</button>
+          </div>
+        </div>
+        <div id="taskRegionOptions" class="task-region-grid"></div>
+      </section>
+      <div id="taskFilterSide" class="task-filter-side"></div>
+      <div id="taskSearchSlot" class="task-search-slot"></div>`;
+
+    const anchor = regionSelect.parentElement;
+    anchor.parentElement.insertBefore(layout, anchor);
+
+    const side = layout.querySelector('#taskFilterSide');
+    side.append(makeFilterCard('Points', points, 'task-points-card'));
+    side.append(makeFilterCard('Completion', status, 'task-completion-card'));
+    layout.querySelector('#taskSearchSlot').append(search);
+
+    anchor.style.display = 'none';
+    populateRegionPanel();
+
+    document.getElementById('taskRegionSelectAll').onclick = () => {
+      selectedRegions.clear();
+      regionNames().forEach(region => selectedRegions.add(region));
+      populateRegionPanel();
       enhancedRenderTasks();
     };
-    syncRegionPicker();
+    document.getElementById('taskRegionClear').onclick = () => {
+      selectedRegions.clear();
+      populateRegionPanel();
+      enhancedRenderTasks();
+    };
   }
 
-  function syncRegionPicker(){
-    const all = document.getElementById('taskRegionAll');
-    const summary = document.getElementById('taskRegionSummary');
-    if(all) all.checked = selectedRegions.size === 0;
-    if(summary){
-      if(selectedRegions.size === 0) summary.textContent = 'All regions';
-      else if(selectedRegions.size === 1) summary.textContent = [...selectedRegions][0];
-      else summary.textContent = `${selectedRegions.size} regions selected`;
-    }
+  function populateRegionPanel(){
+    const options = document.getElementById('taskRegionOptions');
+    if(!options) return;
+    const regions = regionNames();
+    const valid = new Set(regions);
+    [...selectedRegions].forEach(region => { if(!valid.has(region)) selectedRegions.delete(region); });
+
+    options.innerHTML = regions.map(region => `
+      <label class="task-region-checkbox">
+        <input type="checkbox" value="${escHtml(region)}" ${selectedRegions.has(region)?'checked':''}>
+        <span>${escHtml(region)}</span>
+      </label>`).join('');
+
+    options.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+      input.checked ? selectedRegions.add(input.value) : selectedRegions.delete(input.value);
+      syncRegionCount();
+      enhancedRenderTasks();
+    }));
+    syncRegionCount();
+  }
+
+  function syncRegionCount(){
+    const count = document.getElementById('taskRegionCount');
+    if(!count) return;
+    const total = regionNames().length;
+    if(selectedRegions.size === 0) count.textContent = 'All regions shown';
+    else if(selectedRegions.size === total) count.textContent = 'All regions selected';
+    else count.textContent = `${selectedRegions.size} region${selectedRegions.size===1?'':'s'} selected`;
   }
 
   function enhancedRenderTasks(){
@@ -93,7 +136,7 @@
   }
 
   function setup(){
-    buildRegionPicker();
+    buildFilterLayout();
     const header = document.querySelector('#taskBody')?.closest('table')?.querySelector('thead th:last-child');
     if(header) header.textContent = 'Type';
     ['taskSearch','pointsFilter','statusFilter'].forEach(id => {
@@ -104,7 +147,7 @@
     enhancedRenderTasks();
 
     const observer = new MutationObserver(() => {
-      if(!document.getElementById('taskRegionMulti')) buildRegionPicker();
+      if(!document.getElementById('taskFilterLayout')) buildFilterLayout();
       const lastHeader = document.querySelector('#taskBody')?.closest('table')?.querySelector('thead th:last-child');
       if(lastHeader && lastHeader.textContent.trim() !== 'Type') lastHeader.textContent = 'Type';
     });
