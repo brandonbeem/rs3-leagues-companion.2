@@ -1,8 +1,12 @@
 from pathlib import Path
 import re
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = ROOT / "dist" / "index.html"
+DIST = ROOT / "dist"
+INDEX = DIST / "index.html"
+RELIC_SOURCE = ROOT / "relics-v20-2"
+RELIC_DESTINATION = DIST / "relics-v20-2"
 html = INDEX.read_text(encoding="utf-8")
 
 styles = [
@@ -11,6 +15,12 @@ styles = [
 scripts = [
     "features/dependencies/route-planner-removal.js",
     "features/dependencies/task-tracker-enhancements.js",
+    "relics-v20-2/animal-wrangler.js",
+    "relics-v20-2/devout.js",
+    "relics-v20-2/icyenic-faith.js",
+    "relics-v20-2/perkfection.js",
+    "relics-v20-2/rejuvenated.js",
+    "relics-v20-2/finalize.js",
 ]
 removed_styles = [
     "features/dependencies/region-planner.css",
@@ -47,12 +57,22 @@ for path in scripts:
     if path not in html:
         html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
+if not RELIC_SOURCE.exists():
+    raise SystemExit("V20.2 relic source directory is missing")
+if RELIC_DESTINATION.exists():
+    shutil.rmtree(RELIC_DESTINATION)
+shutil.copytree(RELIC_SOURCE, RELIC_DESTINATION)
+
 for path in [*styles, *scripts]:
     if html.count(path) != 1:
         raise SystemExit(f"Current UI asset must appear exactly once: {path}")
 for path in [*removed_styles, *removed_scripts]:
     if path in html:
         raise SystemExit(f"Removed Route Planner asset leaked into production: {path}")
+for path in scripts[2:]:
+    output = DIST / path
+    if not output.exists() or output.stat().st_size == 0:
+        raise SystemExit(f"Relic expansion asset is missing from build output: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied current Task Tracker layout and kept Route Planner removed")
+print("Applied current Task Tracker layout, restored five V20.2 relics, and kept Route Planner removed")
