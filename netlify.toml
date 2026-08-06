@@ -1,5 +1,5 @@
 [build]
-  command = "python3 tools/build_netlify.py"
+  command = "python3 tools/build_netlify.py && python3 tools/postprocess_current_ui.py"
   publish = "dist"
 
 # Production redeploy trigger after restoring Netlify build capacity.
