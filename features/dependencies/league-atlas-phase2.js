@@ -1,21 +1,270 @@
 (()=>{
   const REGION_DEFS=[
-    {id:'tirannwn',names:['Tirannwn','Elven Lands'],color:'#56c4c7',path:'M45 292 H56 V258 H68 V235 H82 V218 H104 V204 H126 V211 H148 V225 H160 V247 H169 V281 H160 V314 H146 V337 H128 V352 H94 V344 H73 V326 H58 V307 H45 Z',fragments:['M31 270 H43 V258 H54 V272 H45 V283 H31 Z','M84 201 H96 V189 H108 V201 H99 V212 H84 Z'],label:[108,282],sub:'ELVEN LANDS',labelW:112},
-    {id:'fremennik',names:['Fremennik Province','Fremennik'],color:'#c17b2f',path:'M92 110 H104 V92 H123 V80 H146 V72 H172 V79 H192 V68 H218 V77 H239 V91 H258 V106 H271 V126 H262 V148 H249 V164 H225 V175 H198 V179 H173 V187 H145 V176 H121 V164 H105 V145 H92 Z',fragments:['M58 94 H72 V82 H87 V96 H82 V108 H66 V114 H58 Z','M43 128 H54 V116 H67 V120 H74 V134 H63 V145 H48 V140 H43 Z'],label:[182,126],sub:'PROVINCE',labelW:126},
-    {id:'kandarin',names:['Kandarin'],color:'#6549a5',path:'M111 194 H132 V182 H158 V177 H182 V168 H207 V174 H232 V184 H259 V190 H282 V203 H299 V222 H307 V246 H300 V267 H309 V286 H297 V307 H284 V326 H262 V340 H237 V350 H211 V362 H187 V354 H164 V342 H145 V329 H128 V310 H116 V290 H108 V266 H113 V244 H109 V220 Z',fragments:['M94 185 H106 V173 H118 V184 H113 V195 H100 Z'],label:[210,267],labelW:92},
-    {id:'karamja',names:['Karamja'],color:'#4f9429',path:'M267 333 H283 V320 H306 V311 H329 V318 H344 V330 H360 V345 H366 V366 H357 V385 H354 V402 H337 V413 H313 V418 H291 V405 H279 V389 H269 V369 H263 V350 Z',label:[316,365],labelW:88},
-    {id:'asgarnia',names:['Asgarnia'],color:'#c34d4d',path:'M278 168 H299 V159 H324 V151 H352 V146 H376 V155 H392 V169 H409 V185 H414 V207 H408 V226 H416 V246 H409 V268 H414 V286 H402 V304 H390 V323 H373 V338 H351 V331 H330 V320 H310 V314 H298 V296 H286 V279 H279 V257 H284 V235 H279 V213 H282 V191 Z',label:[348,245],labelW:94},
-    {id:'wilderness',names:['Wilderness'],color:'#2f3435',path:'M362 83 H390 V86 H418 V82 H446 V85 H474 V82 H505 V87 H523 V98 H538 V112 H553 V131 H549 V154 H545 V178 H542 V202 H523 V213 H501 V220 H479 V231 H456 V220 H434 V211 H411 V197 H393 V185 H377 V166 H365 V149 H369 V126 H362 Z',fragments:['M337 79 H350 V68 H363 V80 H359 V91 H344 Z','M531 72 H544 V62 H559 V75 H555 V88 H540 Z'],label:[454,144],labelW:108},
-    {id:'misthalin',names:['Misthalin'],color:'#2e66c9',autoUnlocked:true,path:'M391 227 H414 V218 H439 V213 H468 V207 H493 V212 H514 V221 H533 V233 H553 V244 H557 V265 H551 V286 H555 V314 H541 V329 H523 V342 H502 V356 H480 V350 H459 V344 H438 V338 H421 V326 H409 V312 H396 V299 H389 V282 H394 V261 H389 Z',label:[474,281],labelW:96},
-    {id:'morytania',names:['Morytania'],color:'#34743f',path:'M547 219 H568 V224 H592 V226 H615 V231 H635 V240 H651 V251 H667 V262 H684 V275 H680 V293 H671 V315 H662 V338 H641 V345 H620 V351 H600 V359 H581 V348 H564 V337 H549 V318 H552 V297 H547 V274 H551 V250 H547 Z',fragments:['M682 233 H696 V224 H708 V238 H703 V250 H690 Z','M699 321 H712 V313 H724 V327 H719 V339 H706 Z'],label:[612,283],labelW:98},
-    {id:'desert',names:['Kharidian Desert','Desert'],color:'#d4bb48',path:'M432 350 H457 V344 H482 V340 H516 V345 H536 V354 H553 V370 H575 V389 H571 V414 H566 V441 H562 V487 H549 V503 H532 V520 H507 V540 H485 V532 H462 V520 H439 V509 H427 V488 H419 V464 H404 V427 H412 V402 H422 V376 Z',fragments:['M460 545 H475 V536 H488 V550 H482 V562 H468 Z','M504 554 H518 V545 H531 V559 H526 V571 H512 Z'],label:[491,421],sub:'DESERT',labelW:132},
-    {id:'anachronia',names:['Anachronia'],color:'#c985d3',path:'M668 76 H689 V65 H714 V56 H739 V48 H762 V52 H785 V58 H812 V66 H828 V81 H840 V96 H852 V113 H847 V135 H841 V155 H833 V176 H813 V183 H793 V190 H774 V194 H753 V186 H733 V181 H710 V173 H699 V156 H686 V142 H675 V126 H679 V103 H668 Z',fragments:['M650 84 H663 V73 H675 V85 H670 V97 H657 Z','M818 51 H831 V40 H843 V54 H838 V65 H825 Z','M851 87 H865 V78 H877 V92 H872 V103 H859 Z'],label:[760,119],labelW:104},
-    {id:'havenhythe',names:['Havenhythe'],color:'#815047',autoUnlocked:true,path:'M836 255 H857 V247 H880 V238 H901 V230 H921 V237 H940 V247 H954 V261 H960 V282 H964 V303 H962 V338 H950 V356 H940 V372 H927 V387 H904 V384 H883 V380 H864 V373 H855 V356 H846 V340 H835 V320 H839 V299 H835 V278 Z',fragments:['M817 273 H830 V262 H843 V275 H838 V287 H824 Z','M944 220 H958 V210 H970 V224 H965 V236 H951 Z'],label:[900,309],labelW:108}
+    {id:'tirannwn',names:['Tirannwn','Elven Lands'],color:'#56c4c7',offset:[-18,8],path:'M45 292 H56 V258 H68 V235 H82 V218 H104 V204 H126 V211 H148 V225 H160 V247 H169 V281 H160 V314 H146 V337 H128 V352 H94 V344 H73 V326 H58 V307 H45 Z',fragments:['M31 270 H43 V258 H54 V272 H45 V283 H31 Z','M84 201 H96 V189 H108 V201 H99 V212 H84 Z'],label:[108,282],sub:'ELVEN LANDS',labelW:112},
+    {id:'fremennik',names:['Fremennik Province','Fremennik'],color:'#c17b2f',offset:[-4,-5],path:'M92 110 H104 V92 H123 V80 H146 V72 H172 V79 H192 V68 H218 V77 H239 V91 H258 V106 H271 V126 H262 V148 H249 V164 H225 V175 H198 V179 H173 V187 H145 V176 H121 V164 H105 V145 H92 Z',fragments:['M58 94 H72 V82 H87 V96 H82 V108 H66 V114 H58 Z','M43 128 H54 V116 H67 V120 H74 V134 H63 V145 H48 V140 H43 Z'],label:[182,126],sub:'PROVINCE',labelW:126},
+    {id:'kandarin',names:['Kandarin'],color:'#6549a5',offset:[6,4],path:'M111 194 H132 V182 H158 V177 H182 V168 H207 V174 H232 V184 H259 V190 H282 V203 H299 V222 H307 V246 H300 V267 H309 V286 H297 V307 H284 V326 H262 V340 H237 V350 H211 V362 H187 V354 H164 V342 H145 V329 H128 V310 H116 V290 H108 V266 H113 V244 H109 V220 Z',fragments:['M94 185 H106 V173 H118 V184 H113 V195 H100 Z'],label:[210,267],labelW:92},
+    {id:'karamja',names:['Karamja'],color:'#4f9429',offset:[5,10],path:'M267 333 H283 V320 H306 V311 H329 V318 H344 V330 H360 V345 H366 V366 H357 V385 H354 V402 H337 V413 H313 V418 H291 V405 H279 V389 H269 V369 H263 V350 Z',label:[316,365],labelW:88},
+    {id:'asgarnia',names:['Asgarnia'],color:'#c34d4d',offset:[5,0],path:'M278 168 H299 V159 H324 V151 H352 V146 H376 V155 H392 V169 H409 V185 H414 V207 H408 V226 H416 V246 H409 V268 H414 V286 H402 V304 H390 V323 H373 V338 H351 V331 H330 V320 H310 V314 H298 V296 H286 V279 H279 V257 H284 V235 H279 V213 H282 V191 Z',label:[348,245],labelW:94},
+    {id:'wilderness',names:['Wilderness'],color:'#2f3435',offset:[0,-4],path:'M362 83 H390 V86 H418 V82 H446 V85 H474 V82 H505 V87 H523 V98 H538 V112 H553 V131 H549 V154 H545 V178 H542 V202 H523 V213 H501 V220 H479 V231 H456 V220 H434 V211 H411 V197 H393 V185 H377 V166 H365 V149 H369 V126 H362 Z',fragments:['M337 79 H350 V68 H363 V80 H359 V91 H344 Z','M531 72 H544 V62 H559 V75 H555 V88 H540 Z'],label:[454,144],labelW:108},
+    {id:'misthalin',names:['Misthalin'],color:'#2e66c9',autoUnlocked:true,offset:[4,4],path:'M391 227 H414 V218 H439 V213 H468 V207 H493 V212 H514 V221 H533 V233 H553 V244 H557 V265 H551 V286 H555 V314 H541 V329 H523 V342 H502 V356 H480 V350 H459 V344 H438 V338 H421 V326 H409 V312 H396 V299 H389 V282 H394 V261 H389 Z',label:[474,281],labelW:96},
+    {id:'morytania',names:['Morytania'],color:'#34743f',offset:[12,4],path:'M547 219 H568 V224 H592 V226 H615 V231 H635 V240 H651 V251 H667 V262 H684 V275 H680 V293 H671 V315 H662 V338 H641 V345 H620 V351 H600 V359 H581 V348 H564 V337 H549 V318 H552 V297 H547 V274 H551 V250 H547 Z',fragments:['M682 233 H696 V224 H708 V238 H703 V250 H690 Z','M699 321 H712 V313 H724 V327 H719 V339 H706 Z'],label:[612,283],labelW:98},
+    {id:'desert',names:['Kharidian Desert','Desert'],color:'#d4bb48',offset:[6,14],path:'M432 350 H457 V344 H482 V340 H516 V345 H536 V354 H553 V370 H575 V389 H571 V414 H566 V441 H562 V487 H549 V503 H532 V520 H507 V540 H485 V532 H462 V520 H439 V509 H427 V488 H419 V464 H404 V427 H412 V402 H422 V376 Z',fragments:['M460 545 H475 V536 H488 V550 H482 V562 H468 Z','M504 554 H518 V545 H531 V559 H526 V571 H512 Z'],label:[491,421],sub:'DESERT',labelW:132},
+    {id:'anachronia',names:['Anachronia'],color:'#c985d3',offset:[8,-5],path:'M668 76 H689 V65 H714 V56 H739 V48 H762 V52 H785 V58 H812 V66 H828 V81 H840 V96 H852 V113 H847 V135 H841 V155 H833 V176 H813 V183 H793 V190 H774 V194 H753 V186 H733 V181 H710 V173 H699 V156 H686 V142 H675 V126 H679 V103 H668 Z',fragments:['M650 84 H663 V73 H675 V85 H670 V97 H657 Z','M818 51 H831 V40 H843 V54 H838 V65 H825 Z','M851 87 H865 V78 H877 V92 H872 V103 H859 Z'],label:[760,119],labelW:104},
+    {id:'havenhythe',names:['Havenhythe'],color:'#815047',autoUnlocked:true,offset:[10,4],path:'M836 255 H857 V247 H880 V238 H901 V230 H921 V237 H940 V247 H954 V261 H960 V282 H964 V303 H962 V338 H950 V356 H940 V372 H927 V387 H904 V384 H883 V380 H864 V373 H855 V356 H846 V340 H835 V320 H839 V299 H835 V278 Z',fragments:['M817 273 H830 V262 H843 V275 H838 V287 H824 Z','M944 220 H958 V210 H970 V224 H965 V236 H951 Z'],label:[900,309],labelW:108}
   ];
   const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
-  function findAtlasCard(){const heading=[...document.querySelectorAll('h1,h2,h3,h4,b,strong')].find(el=>/league atlas/i.test((el.textContent||'').trim()));if(!heading)return null;let node=heading;for(let i=0;i<6&&node;i++,node=node.parentElement){if(node.querySelector?.('svg')&&(node.innerText||'').toLowerCase().includes('unlocked regions'))return node;}return heading.parentElement;}
-  function legacyRegionInfo(svg,def){const candidates=[...svg.querySelectorAll('g,path,polygon')];let target=null;for(const el of candidates){const hay=norm([(el.textContent||''),Object.values(el.dataset||{}).join(' '),el.getAttribute?.('aria-label')||'',el.querySelector?.('title')?.textContent||'',el.id,el.getAttribute?.('class')].join(' '));if(def.names.some(name=>hay.includes(norm(name)))){target=el;break;}}if(!target){const textNode=[...svg.querySelectorAll('text')].find(el=>def.names.some(name=>norm(el.textContent).includes(norm(name))));target=textNode?.closest('g')||textNode?.parentElement||null;}if(!target)return {target:null,unlocked:Boolean(def.autoUnlocked),selected:false};const cls=(target.getAttribute?.('class')||'').toLowerCase();const path=target.matches?.('path,polygon')?target:target.querySelector?.('path,polygon');const fill=(path?.getAttribute('fill')||getComputedStyle(path||target).fill||'').toLowerCase();const stroke=(path?.getAttribute('stroke')||getComputedStyle(path||target).stroke||'').toLowerCase();const locked=/locked|disabled/.test(cls)||/rgb\((3[5-9]|4[0-9]|5[0-9]),\s*(3[5-9]|4[0-9]|5[0-9])/.test(fill);const selected=/selected|active|current/.test(cls)||stroke.includes('255, 216')||stroke.includes('#ffd');const unlocked=!locked&&(!/none|transparent/.test(fill)||/unlocked|active|selected/.test(cls));return {target,unlocked:Boolean(def.autoUnlocked)||selected||unlocked,selected};}
-  function markup(states){const regions=REGION_DEFS.map(def=>{const state=states.get(def.id)||{};const cls=`atlas-region ${state.unlocked?'unlocked':'locked'} ${state.selected?'selected':''}`;const fragments=(def.fragments||[]).map(d=>`<path class="atlas-fragment" d="${d}"/>`).join('');const w=def.labelW||100;const y=def.label[1]-(def.sub?21:15);const label=`<g class="atlas-label"><rect x="${def.label[0]-w/2}" y="${y}" width="${w}" height="${def.sub?42:30}"/><text x="${def.label[0]}" y="${def.label[1]-(def.sub?7:0)}">${def.names[0]}</text>${def.sub?`<text class="atlas-sub" x="${def.label[0]}" y="${def.label[1]+11}">${def.sub}</text>`:''}</g>`;return `<g class="${cls}" tabindex="0" role="button" aria-label="${def.names[0]} ${state.unlocked?'unlocked':'locked'}" data-atlas-region="${def.id}" style="--region-color:${def.color}"><path class="atlas-mainland" d="${def.path}"/>${fragments}${label}</g>`;}).join('');return `<div class="league-atlas-v2-legend"><span><i class="u"></i>Unlocked</span><span><i class="l"></i>Locked</span><span><i class="s"></i>Selected</span></div><div class="league-atlas-v2-wrap"><svg class="league-atlas-v2" viewBox="25 28 960 545" aria-label="Interactive pixel League Atlas"><defs><pattern id="atlasDither" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#303536"/><rect width="6" height="6" fill="#3c4243"/><rect x="6" y="6" width="6" height="6" fill="#3c4243"/></pattern><pattern id="atlasPixelNoise" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="var(--region-color)"/><rect width="4" height="4" fill="rgba(255,255,255,.08)"/><rect x="12" y="12" width="4" height="4" fill="rgba(0,0,0,.12)"/></pattern></defs>${regions}</svg><p class="league-atlas-v2-note">Unlocked regions are illuminated. Select an available region to open its task list.</p></div>`;}
-  function install(){const card=findAtlasCard();if(!card||card.dataset.atlasPhase2==='true')return false;const legacy=card.querySelector('svg');if(!legacy)return false;const states=new Map();REGION_DEFS.forEach(def=>states.set(def.id,legacyRegionInfo(legacy,def)));legacy.classList.add('league-atlas-legacy');const host=document.createElement('div');host.dataset.leagueAtlasPhase2='true';host.innerHTML=markup(states);legacy.insertAdjacentElement('afterend',host);host.querySelectorAll('[data-atlas-region]').forEach(region=>{const activate=()=>{const info=states.get(region.dataset.atlasRegion);if(!info?.unlocked)return;if(info.target)info.target.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));else window.dispatchEvent(new CustomEvent('rs3:league-region-selected',{detail:{regionId:region.dataset.atlasRegion}}));host.querySelectorAll('.atlas-region').forEach(el=>el.classList.toggle('selected',el===region));};region.addEventListener('click',activate);region.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});card.dataset.atlasPhase2='true';return true;}
-  const run=()=>{if(!install())setTimeout(install,250)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(()=>{const card=findAtlasCard();if(card&&!card.querySelector('[data-league-atlas-phase2]')){card.dataset.atlasPhase2='';install();}},120)});observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('rs3:regions-updated',()=>{const card=findAtlasCard();if(card){card.querySelector('[data-league-atlas-phase2]')?.remove();card.dataset.atlasPhase2='';card.querySelector('svg')?.classList.remove('league-atlas-legacy');install();}});
+  const aliases=new Map();
+  REGION_DEFS.forEach(def=>def.names.forEach(name=>aliases.set(norm(name),def.id)));
+  aliases.set('desert','desert'); aliases.set('kharidiandesert','desert'); aliases.set('elvenlands','tirannwn'); aliases.set('fremennikprovince','fremennik');
+  const canonical=value=>aliases.get(norm(value))||null;
+
+  function findAtlasCard(){
+    const heading=[...document.querySelectorAll('h1,h2,h3,h4,b,strong')].find(el=>/league atlas/i.test((el.textContent||'').trim()));
+    if(!heading)return null;
+    let node=heading;
+    for(let i=0;i<7&&node;i++,node=node.parentElement){
+      if(node.querySelector?.('svg')&&(node.innerText||'').toLowerCase().includes('unlocked regions'))return node;
+    }
+    return heading.parentElement;
+  }
+
+  function safeParsedStorage(){
+    const values=[];
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const raw=localStorage.getItem(localStorage.key(i));
+        if(!raw)continue;
+        try{values.push(JSON.parse(raw));}catch{}
+      }
+    }catch{}
+    return values;
+  }
+
+  function dataRoots(){
+    return [window.STATE,window.APP_STATE,window.appState,window.DATA,window.CONST,...safeParsedStorage()].filter(Boolean);
+  }
+
+  function collectUnlocked(){
+    const out=new Set(['misthalin','havenhythe']);
+    const visited=new WeakSet();
+    const walk=(value,key='',depth=0)=>{
+      if(depth>5||value==null)return;
+      if(typeof value==='string'){
+        if(/unlock|region|area|chosen|selected/i.test(key)){const id=canonical(value);if(id)out.add(id);}
+        return;
+      }
+      if(typeof value!=='object')return;
+      if(visited.has(value))return; visited.add(value);
+      if(Array.isArray(value)){
+        value.forEach(item=>walk(item,key,depth+1));
+        return;
+      }
+      Object.entries(value).forEach(([childKey,child])=>{
+        const id=canonical(childKey);
+        if(id&&child===true&&/unlock|region|area|chosen|selected/i.test(key+' '+childKey))out.add(id);
+        if(/unlock|region|area|chosen/i.test(childKey))walk(child,childKey,depth+1);
+        else if(depth<2)walk(child,childKey,depth+1);
+      });
+    };
+    dataRoots().forEach(root=>walk(root));
+    return out;
+  }
+
+  function findTaskArray(){
+    const visited=new WeakSet();
+    let best=[];
+    const walk=(value,depth=0)=>{
+      if(depth>4||value==null||typeof value!=='object'||visited.has(value))return;
+      visited.add(value);
+      if(Array.isArray(value)){
+        if(value.length>best.length&&value.length>20&&value.some(item=>item&&typeof item==='object'&&('region' in item||'area' in item||'location' in item)))best=value;
+        value.slice(0,8).forEach(item=>walk(item,depth+1));
+        return;
+      }
+      Object.values(value).forEach(child=>walk(child,depth+1));
+    };
+    dataRoots().forEach(root=>walk(root));
+    return best;
+  }
+
+  function collectCompletedIds(){
+    const out=new Set();
+    const visited=new WeakSet();
+    const add=value=>{if(value!==undefined&&value!==null&&(typeof value==='string'||typeof value==='number'))out.add(String(value));};
+    const walk=(value,key='',depth=0)=>{
+      if(depth>5||value==null)return;
+      if(typeof value!=='object'){if(/done|complete|checked|finished/i.test(key))add(value);return;}
+      if(visited.has(value))return; visited.add(value);
+      if(Array.isArray(value)){
+        if(/done|complete|checked|finished/i.test(key))value.forEach(item=>typeof item==='object'?(add(item.id),add(item.sourceId),add(item.taskId)):add(item));
+        else if(depth<2)value.slice(0,20).forEach(item=>walk(item,key,depth+1));
+        return;
+      }
+      Object.entries(value).forEach(([childKey,child])=>{
+        if(/done|complete|checked|finished|progress/i.test(childKey)){
+          if(child&&typeof child==='object'&&!Array.isArray(child))Object.entries(child).forEach(([id,val])=>{if(val===true||val==='complete'||val==='done')add(id);});
+          walk(child,childKey,depth+1);
+        } else if(depth<2) walk(child,childKey,depth+1);
+      });
+    };
+    dataRoots().forEach(root=>walk(root));
+    return out;
+  }
+
+  function taskRegion(task){
+    const raw=task?.region??task?.area??task?.location??task?.zone??task?.group;
+    if(Array.isArray(raw))return raw.map(canonical).find(Boolean)||null;
+    return canonical(raw);
+  }
+
+  function taskId(task,index){return String(task?.sourceId??task?.taskId??task?.id??task?.key??index);}
+
+  function progressFromData(){
+    const tasks=findTaskArray();
+    const completed=collectCompletedIds();
+    const result=new Map(REGION_DEFS.map(def=>[def.id,{complete:0,total:0}]));
+    tasks.forEach((task,index)=>{
+      const id=taskRegion(task); if(!id||!result.has(id))return;
+      const stat=result.get(id); stat.total++;
+      if(task?.completed===true||task?.done===true||completed.has(taskId(task,index)))stat.complete++;
+    });
+    return result;
+  }
+
+  function progressFromPage(){
+    const result=new Map();
+    const text=(findAtlasCard()?.parentElement?.innerText||document.body.innerText||'');
+    REGION_DEFS.forEach(def=>{
+      for(const name of def.names){
+        const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const match=text.match(new RegExp(`${escaped}\\s+(\\d+)\\s*\\/\\s*(\\d+)`, 'i'));
+        if(match){result.set(def.id,{complete:Number(match[1]),total:Number(match[2])});break;}
+      }
+    });
+    return result;
+  }
+
+  function mergedProgress(){
+    const data=progressFromData();
+    const page=progressFromPage();
+    REGION_DEFS.forEach(def=>{
+      const stat=data.get(def.id);
+      if((!stat||!stat.total)&&page.has(def.id))data.set(def.id,page.get(def.id));
+    });
+    return data;
+  }
+
+  function legacyRegionInfo(svg,def,unlockedSet){
+    const candidates=[...svg.querySelectorAll('g,path,polygon')];
+    let target=null;
+    for(const el of candidates){
+      const hay=norm([(el.textContent||''),Object.values(el.dataset||{}).join(' '),el.getAttribute?.('aria-label')||'',el.querySelector?.('title')?.textContent||'',el.id,el.getAttribute?.('class')].join(' '));
+      if(def.names.some(name=>hay.includes(norm(name)))){target=el;break;}
+    }
+    if(!target){
+      const textNode=[...svg.querySelectorAll('text')].find(el=>def.names.some(name=>norm(el.textContent).includes(norm(name))));
+      target=textNode?.closest('g')||textNode?.parentElement||null;
+    }
+    if(!target)return {target:null,unlocked:unlockedSet.has(def.id),selected:false};
+    const cls=(target.getAttribute?.('class')||'').toLowerCase();
+    const path=target.matches?.('path,polygon')?target:target.querySelector?.('path,polygon');
+    const fill=(path?.getAttribute('fill')||getComputedStyle(path||target).fill||'').toLowerCase();
+    const stroke=(path?.getAttribute('stroke')||getComputedStyle(path||target).stroke||'').toLowerCase();
+    const locked=/locked|disabled/.test(cls)||/rgb\((3[5-9]|4[0-9]|5[0-9]),\s*(3[5-9]|4[0-9]|5[0-9])/.test(fill);
+    const selected=/selected|active|current/.test(cls)||stroke.includes('255, 216')||stroke.includes('#ffd');
+    const visuallyUnlocked=!locked&&(!/none|transparent/.test(fill)||/unlocked|active|selected/.test(cls));
+    return {target,unlocked:unlockedSet.has(def.id)||selected||visuallyUnlocked,selected};
+  }
+
+  function labelMarkup(def){
+    const w=def.labelW||100;
+    const y=def.label[1]-(def.sub?21:15);
+    return `<g class="atlas-label"><rect x="${def.label[0]-w/2}" y="${y}" width="${w}" height="${def.sub?42:30}"/><text x="${def.label[0]}" y="${def.label[1]-(def.sub?7:0)}">${def.names[0]}</text>${def.sub?`<text class="atlas-sub" x="${def.label[0]}" y="${def.label[1]+11}">${def.sub}</text>`:''}</g>`;
+  }
+
+  function regionMarkup(def,state){
+    const cls=`atlas-region ${state.unlocked?'unlocked':'locked'} ${state.selected?'selected':''}`;
+    const fragments=(def.fragments||[]).map(d=>`<path class="atlas-fragment" d="${d}"/>`).join('');
+    const [dx,dy]=def.offset||[0,0];
+    return `<g class="atlas-position" transform="translate(${dx} ${dy})"><g class="${cls}" tabindex="0" role="button" aria-label="${def.names[0]} ${state.unlocked?'unlocked':'locked'}" data-atlas-region="${def.id}" style="--region-color:${def.color}"><path class="atlas-mainland" d="${def.path}"/>${fragments}${labelMarkup(def)}</g></g>`;
+  }
+
+  function detailMarkup(){
+    return `<section class="league-atlas-detail" data-atlas-detail><div><span class="atlas-detail-kicker">Selected region</span><h4 data-atlas-detail-name>Select an unlocked region</h4><p data-atlas-detail-status>Choose a colored region to view its progress.</p></div><div class="atlas-detail-progress"><div class="atlas-detail-count" data-atlas-detail-count>—</div><div class="atlas-progress-track"><span data-atlas-progress-bar></span></div></div><button type="button" data-atlas-open-tasks disabled>View region tasks</button></section>`;
+  }
+
+  function markup(states){
+    const regions=REGION_DEFS.map(def=>regionMarkup(def,states.get(def.id)||{})).join('');
+    return `<div class="league-atlas-v2-legend"><span><i class="u"></i>Unlocked</span><span><i class="l"></i>Locked</span><span><i class="s"></i>Selected</span></div><div class="league-atlas-v2-wrap"><svg class="league-atlas-v2" viewBox="10 20 985 575" aria-label="Interactive pixel League Atlas"><defs><pattern id="atlasDither" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#303536"/><rect width="6" height="6" fill="#3c4243"/><rect x="6" y="6" width="6" height="6" fill="#3c4243"/></pattern></defs>${regions}</svg><p class="league-atlas-v2-note">Unlocked regions are illuminated. Select an available region to open its task list.</p></div>${detailMarkup()}`;
+  }
+
+  function updateDetail(host,def,state,progress){
+    const detail=host.querySelector('[data-atlas-detail]');
+    if(!detail||!def)return;
+    const stat=progress.get(def.id)||{complete:0,total:0};
+    const pct=stat.total?Math.round(stat.complete/stat.total*100):0;
+    detail.querySelector('[data-atlas-detail-name]').textContent=def.names[0];
+    detail.querySelector('[data-atlas-detail-status]').textContent=state.unlocked?(stat.total?`${stat.complete} of ${stat.total} tasks complete`:'Unlocked — task progress will appear here once available'):'Locked region';
+    detail.querySelector('[data-atlas-detail-count]').textContent=stat.total?`${stat.complete} / ${stat.total} · ${pct}%`:(state.unlocked?'Unlocked':'Locked');
+    detail.querySelector('[data-atlas-progress-bar]').style.width=`${pct}%`;
+    const button=detail.querySelector('[data-atlas-open-tasks]');
+    button.disabled=!state.unlocked;
+    button.dataset.regionId=def.id;
+    button.textContent=state.unlocked?'View region tasks':'Region locked';
+  }
+
+  function activateRegion(host,states,progress,id){
+    const def=REGION_DEFS.find(item=>item.id===id); const state=states.get(id);
+    if(!def||!state?.unlocked)return;
+    host.querySelectorAll('.atlas-region').forEach(el=>el.classList.toggle('selected',el.dataset.atlasRegion===id));
+    updateDetail(host,def,state,progress);
+    host.dataset.selectedRegion=id;
+  }
+
+  function openRegion(states,id){
+    const info=states.get(id); if(!info?.unlocked)return;
+    if(info.target)info.target.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+    else window.dispatchEvent(new CustomEvent('rs3:league-region-selected',{detail:{regionId:id}}));
+  }
+
+  function install(){
+    const card=findAtlasCard();
+    if(!card||card.dataset.atlasPhase2==='true')return false;
+    const legacy=card.querySelector('svg'); if(!legacy)return false;
+    const unlockedSet=collectUnlocked();
+    const states=new Map();
+    REGION_DEFS.forEach(def=>states.set(def.id,legacyRegionInfo(legacy,def,unlockedSet)));
+    const progress=mergedProgress();
+    legacy.classList.add('league-atlas-legacy');
+    const host=document.createElement('div');
+    host.dataset.leagueAtlasPhase2='true';
+    host.innerHTML=markup(states);
+    legacy.insertAdjacentElement('afterend',host);
+    host.querySelectorAll('[data-atlas-region]').forEach(region=>{
+      const select=()=>activateRegion(host,states,progress,region.dataset.atlasRegion);
+      region.addEventListener('click',select);
+      region.addEventListener('dblclick',()=>openRegion(states,region.dataset.atlasRegion));
+      region.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
+    });
+    host.querySelector('[data-atlas-open-tasks]').addEventListener('click',()=>openRegion(states,host.dataset.selectedRegion));
+    const initial=REGION_DEFS.find(def=>states.get(def.id)?.selected&&states.get(def.id)?.unlocked)||REGION_DEFS.find(def=>def.id==='misthalin');
+    if(initial)activateRegion(host,states,progress,initial.id);
+    card.dataset.atlasPhase2='true';
+    return true;
+  }
+
+  function rebuild(){
+    const card=findAtlasCard(); if(!card)return;
+    card.querySelector('[data-league-atlas-phase2]')?.remove();
+    card.dataset.atlasPhase2='';
+    card.querySelector('svg')?.classList.remove('league-atlas-legacy');
+    install();
+  }
+
+  const run=()=>{if(!install())setTimeout(install,250)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  const observer=new MutationObserver(()=>{clearTimeout(observer._t);observer._t=setTimeout(()=>{const card=findAtlasCard();if(card&&!card.querySelector('[data-league-atlas-phase2]')){card.dataset.atlasPhase2='';install();}},160)});
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('rs3:regions-updated',rebuild);
+  window.addEventListener('storage',rebuild);
 })();
