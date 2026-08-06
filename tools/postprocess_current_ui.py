@@ -11,12 +11,16 @@ html = INDEX.read_text(encoding="utf-8")
 
 styles = [
     "features/dependencies/task-tracker-enhancements.css",
-    "features/dependencies/relic-planner-registry.css",
 ]
 scripts = [
     "features/dependencies/route-planner-removal.js",
     "features/dependencies/task-tracker-enhancements.js",
 ]
+
+# These are the five additional relic records plus the v20.2 finalizer. In the
+# known-good v20.2 file, this data exists before relics-regions-build.js creates
+# CONST.relics. Loading it at the end of <body> is too late because the planner
+# has already frozen and rendered the original ten relics.
 relic_scripts = [
     "relics-v20-2/devout.js",
     "relics-v20-2/icyenic-faith.js",
@@ -24,9 +28,14 @@ relic_scripts = [
     "relics-v20-2/perkfection.js",
     "relics-v20-2/animal-wrangler.js",
     "relics-v20-2/finalize.js",
-    "features/dependencies/relic-extra-data.js",
+]
+
+obsolete_relic_assets = [
+    "features/dependencies/relic-planner-registry.css",
     "features/dependencies/relic-planner-registry.js",
+    "features/dependencies/relic-extra-data.js",
     "features/dependencies/relic-extra-register.js",
+    "relics-v20-2/refresh.js",
 ]
 removed_styles = [
     "features/dependencies/region-planner.css",
@@ -34,44 +43,55 @@ removed_styles = [
     "features/dependencies/task-lanes.css",
     "features/dependencies/route-action-controls.css",
     "features/dependencies/simple-route-planner.css",
+    *[path for path in obsolete_relic_assets if path.endswith(".css")],
 ]
 removed_scripts = [
     "features/dependencies/route-action-controls.js",
     "features/dependencies/misthalin-progression-data.js",
     "features/dependencies/simple-route-planner.js",
-    "relics-v20-2/refresh.js",
+    *[path for path in obsolete_relic_assets if path.endswith(".js")],
 ]
 
-for path in removed_styles:
+
+def remove_style(path: str) -> None:
+    global html
     html = re.sub(
         rf'\s*<link\b[^>]*href=["\']{re.escape(path)}["\'][^>]*>\s*',
-        "\n", html, flags=re.IGNORECASE,
-    )
-for path in removed_scripts:
-    html = re.sub(
-        rf'\s*<script\b[^>]*src=["\']{re.escape(path)}["\'][^>]*>\s*</script>\s*',
-        "\n", html, flags=re.IGNORECASE,
+        "\n",
+        html,
+        flags=re.IGNORECASE,
     )
 
-# Remove any earlier attempts so every managed asset has one predictable load.
-for path in [*styles, *scripts, *relic_scripts]:
-    html = re.sub(
-        rf'\s*<link\b[^>]*href=["\']{re.escape(path)}["\'][^>]*>\s*',
-        "\n", html, flags=re.IGNORECASE,
-    )
+
+def remove_script(path: str) -> None:
+    global html
     html = re.sub(
         rf'\s*<script\b[^>]*src=["\']{re.escape(path)}["\'][^>]*>\s*</script>\s*',
-        "\n", html, flags=re.IGNORECASE,
+        "\n",
+        html,
+        flags=re.IGNORECASE,
     )
+
+
+for path in [*removed_styles, *styles]:
+    remove_style(path)
+for path in [*removed_scripts, *scripts, *relic_scripts]:
+    remove_script(path)
 
 for path in styles:
     html = html.replace("</head>", f'  <link rel="stylesheet" href="{path}">\n</head>', 1)
 
-# The legacy planner initializes first. The old V20.2 files are retained for
-# their detailed reference text. A normalized data file then feeds the generic
-# registry directly, so the five additional relics no longer depend on hidden
-# globals or the embedded fixed 10-relic array.
-for path in [*scripts, *relic_scripts]:
+# Match the working v20.2 architecture: inject the extra relic data immediately
+# before the relic planner build script. Its syncRelicReferenceData() call then
+# merges all fifteen records before CONST.relics is constructed.
+relic_marker = '<script data-source="js/features/relics-regions-build.js">'
+if relic_marker not in html:
+    raise SystemExit("Could not find relics-regions-build.js marker in generated index.html")
+relic_tags = "\n".join(f'  <script src="{path}"></script>' for path in relic_scripts)
+html = html.replace(relic_marker, f'{relic_tags}\n  {relic_marker}', 1)
+
+# Current Task Tracker and Route Planner-removal behavior can load after the app.
+for path in scripts:
     html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
 if not RELIC_SOURCE.exists():
@@ -86,19 +106,15 @@ for path in [*styles, *scripts, *relic_scripts]:
 for path in [*removed_styles, *removed_scripts]:
     if path in html:
         raise SystemExit(f"Removed Route Planner or obsolete relic asset leaked into production: {path}")
-for path in relic_scripts[:6]:
+for path in relic_scripts:
     output = DIST / path
     if not output.exists() or output.stat().st_size == 0:
         raise SystemExit(f"Relic expansion asset is missing from build output: {path}")
-for path in (
-    "features/dependencies/relic-extra-data.js",
-    "features/dependencies/relic-planner-registry.js",
-    "features/dependencies/relic-extra-register.js",
-    "features/dependencies/relic-planner-registry.css",
-):
-    output = DIST / path
-    if not output.exists() or output.stat().st_size == 0:
-        raise SystemExit(f"Extensible relic registry asset is missing from build output: {path}")
+
+marker_position = html.index(relic_marker)
+for path in relic_scripts:
+    if html.index(path) > marker_position:
+        raise SystemExit(f"Relic data loaded too late, after planner initialization: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied current Task Tracker layout, loaded 15-relic registry data, and kept Route Planner removed")
+print("Applied Task Tracker layout, restored working 15-relic initialization order, and kept Route Planner removed")
