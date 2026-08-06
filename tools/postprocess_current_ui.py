@@ -21,6 +21,7 @@ scripts = [
     "relics-v20-2/perkfection.js",
     "relics-v20-2/rejuvenated.js",
     "relics-v20-2/finalize.js",
+    "relics-v20-2/refresh.js",
 ]
 removed_styles = [
     "features/dependencies/region-planner.css",
@@ -75,4 +76,4 @@ for path in scripts[2:]:
         raise SystemExit(f"Relic expansion asset is missing from build output: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied current Task Tracker layout, restored five V20.2 relics, and kept Route Planner removed")
+print("Applied current Task Tracker layout, restored and refreshed five V20.2 relics, and kept Route Planner removed")
