@@ -1,152 +1,47 @@
-/* One continuous Route Planner checklist. Internal location batches still
-   optimize travel, but they are presented only as compact route markers. */
+/* v10-style Route Planner output: one direct list of generated tasks. */
 #routeResults {
   margin-top: 10px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(10, 20, 14, .33);
 }
 
 #routeResults .route-plan-list {
-  padding: 0 14px;
-}
-
-#routeResults .route-location-divider {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 -14px;
-  padding: 9px 14px;
-  border-top: 1px solid #3a6248;
-  border-bottom: 1px solid var(--line);
-  background: rgba(13, 28, 19, .82);
-}
-
-#routeResults .route-location-divider:first-child {
-  border-top: 0;
-}
-
-#routeResults .route-location-icon {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  place-items: center;
-  border: 1px solid #2e6648;
-  border-radius: 50%;
-  color: var(--green);
-  background: rgba(37, 91, 61, .45);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-#routeResults .route-location-divider b {
-  font-size: 12px;
-}
-
-#routeResults .route-location-divider .meta {
-  margin-left: 8px;
-  font-size: 10px;
+  width: 100%;
 }
 
 #routeResults .route-step {
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-#routeResults .route-step:last-of-type {
+#routeResults .route-step:last-child {
   border-bottom: 0;
 }
 
-#routeResults .skipped-actions-review,
-#routeResults .completed-actions-review {
-  margin: 12px 0;
-}
-
-#routeResults .route-deferred-items {
-  margin: 0;
-  padding: 12px 14px;
-  border-top: 1px solid #3a6248;
-  background: rgba(20, 25, 15, .48);
-}
-
-#routeResults .route-deferred-items > summary {
-  color: var(--gold);
-  font-weight: 800;
-  cursor: pointer;
-}
-
-#routeResults .route-deferred-items > .meta {
-  display: block;
-  margin: 7px 0 10px;
-}
-
-#routeResults .route-deferred-item {
+#routeResults .route-meta {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 6px;
 }
 
-#routeResults .route-deferred-item .meta {
-  display: block;
-  margin-top: 3px;
+#routeResults .route-v10-complete .route-complete {
+  margin-top: 9px;
 }
 
-#routeResults .route-deferred-item .btn {
-  flex: 0 0 auto;
+#routeResults .route-score {
+  text-align: right;
+  white-space: nowrap;
 }
 
-.route-plan-progress {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 14px;
-  align-items: center;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: linear-gradient(90deg, rgba(31, 58, 43, .72), rgba(19, 34, 24, .42));
-}
-
-.route-plan-progress .mini-progress {
-  grid-column: 1 / -1;
-  margin-top: 0;
-}
-
-.route-plan-progress-value {
-  color: var(--green);
-  font-weight: 800;
-}
-
-html[data-theme="light"] #routeResults {
-  background: #f7fbf8;
-}
-
-html[data-theme="light"] #routeResults .route-location-divider,
-html[data-theme="light"] .route-plan-progress {
-  background: linear-gradient(90deg, #e4f4ea, #f4faf6);
-}
-
-@media (max-width: 520px) {
-  #routeResults .route-plan-list {
-    padding-inline: 8px;
+@media (max-width: 650px) {
+  #routeResults .route-step {
+    grid-template-columns: 36px minmax(0, 1fr);
   }
 
-  #routeResults .route-location-divider {
-    margin-inline: -8px;
-    padding-inline: 10px;
-  }
-
-  #routeResults .route-location-divider .meta {
-    display: block;
-    margin: 2px 0 0;
-  }
-
-  #routeResults .route-deferred-item {
-    align-items: flex-start;
-    flex-direction: column;
+  #routeResults .route-score {
+    grid-column: 2;
+    text-align: left;
   }
 }

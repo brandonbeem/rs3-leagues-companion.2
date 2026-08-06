@@ -73,10 +73,9 @@ for expected in (
     "if(/elegant outfit/.test(text))",
     "clue-scroll rewards",
     "if(task?.sourceId)return null",
-    "function renderRouteLocationDivider(session)",
-    "function renderDeferredAcquisitions(entries)",
-    '<section class="route-plan-list">',
-    "one continuous checklist",
+    '<div class="route-plan-list">',
+    "Mark complete everywhere",
+    ">Recommended route</h2>",
 ):
     if expected not in index:
         errors.append(f"Route Planner regression guard is missing: {expected}")
@@ -86,7 +85,7 @@ if not route_list_css.exists():
     errors.append("Continuous Route Planner stylesheet is missing")
 else:
     route_list = route_list_css.read_text(encoding="utf-8")
-    for expected in (".route-plan-list", ".route-location-divider", ".route-plan-progress"):
+    for expected in (".route-plan-list", ".route-v10-complete"):
         if expected not in route_list:
             errors.append(f"Continuous Route Planner style is missing: {expected}")
 
