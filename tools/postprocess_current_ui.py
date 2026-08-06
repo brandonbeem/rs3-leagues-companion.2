@@ -24,7 +24,9 @@ relic_scripts = [
     "relics-v20-2/perkfection.js",
     "relics-v20-2/animal-wrangler.js",
     "relics-v20-2/finalize.js",
+    "features/dependencies/relic-extra-data.js",
     "features/dependencies/relic-planner-registry.js",
+    "features/dependencies/relic-extra-register.js",
 ]
 removed_styles = [
     "features/dependencies/region-planner.css",
@@ -65,10 +67,10 @@ for path in [*styles, *scripts, *relic_scripts]:
 for path in styles:
     html = html.replace("</head>", f'  <link rel="stylesheet" href="{path}">\n</head>', 1)
 
-# The legacy relic planner must initialize first. The V20.2 data patches then
-# populate RELIC_SUMMARY_PATCH / RELIC_KNOWLEDGE, and the generic registry adapts
-# those records into the visible planner. New relics now only need one registry
-# record instead of edits to the embedded 10-relic renderer.
+# The legacy planner initializes first. The old V20.2 files are retained for
+# their detailed reference text. A normalized data file then feeds the generic
+# registry directly, so the five additional relics no longer depend on hidden
+# globals or the embedded fixed 10-relic array.
 for path in [*scripts, *relic_scripts]:
     html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
@@ -84,14 +86,19 @@ for path in [*styles, *scripts, *relic_scripts]:
 for path in [*removed_styles, *removed_scripts]:
     if path in html:
         raise SystemExit(f"Removed Route Planner or obsolete relic asset leaked into production: {path}")
-for path in relic_scripts[:-1]:
+for path in relic_scripts[:6]:
     output = DIST / path
     if not output.exists() or output.stat().st_size == 0:
         raise SystemExit(f"Relic expansion asset is missing from build output: {path}")
-for path in ("features/dependencies/relic-planner-registry.js", "features/dependencies/relic-planner-registry.css"):
+for path in (
+    "features/dependencies/relic-extra-data.js",
+    "features/dependencies/relic-planner-registry.js",
+    "features/dependencies/relic-extra-register.js",
+    "features/dependencies/relic-planner-registry.css",
+):
     output = DIST / path
     if not output.exists() or output.stat().st_size == 0:
         raise SystemExit(f"Extensible relic registry asset is missing from build output: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied current Task Tracker layout, enabled extensible relic registry, and kept Route Planner removed")
+print("Applied current Task Tracker layout, loaded 15-relic registry data, and kept Route Planner removed")
