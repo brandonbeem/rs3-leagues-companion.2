@@ -11,8 +11,6 @@ DEPENDENCY_DIR = ROOT / "features" / "dependencies"
 
 STYLE_PATHS = [
     "features/dependencies/region-explorer-enhancement.css",
-    "features/dependencies/route-action-controls.css",
-    "features/dependencies/simple-route-planner.css",
 ]
 SCRIPT_PATHS = [
     "features/dependencies/dependency-engine.js",
@@ -24,9 +22,7 @@ SCRIPT_PATHS = [
     "features/dependencies/region-planner-native.js",
     "features/dependencies/region-planner-native-layout.js",
     "features/dependencies/task-tracker-scroll-guard.js",
-    "features/dependencies/route-action-controls.js",
-    "features/dependencies/misthalin-progression-data.js",
-    "features/dependencies/simple-route-planner.js",
+    "features/dependencies/route-planner-removal.js",
 ]
 
 REMOVED_SCRIPT_PATHS = [
@@ -36,15 +32,24 @@ REMOVED_SCRIPT_PATHS = [
     "features/dependencies/region-planner-tab-lifecycle.js",
     "features/dependencies/region-planner-dom-guard.js",
     "features/dependencies/region-planner-visibility-guard.js",
+    "features/dependencies/route-action-controls.js",
+    "features/dependencies/misthalin-progression-data.js",
+    "features/dependencies/simple-route-planner.js",
+]
+REMOVED_STYLE_PATHS = [
+    "features/dependencies/region-planner.css",
+    "features/dependencies/route-action-controls.css",
+    "features/dependencies/simple-route-planner.css",
 ]
 
 subprocess.run([sys.executable, str(ROOT / "tools" / "validate_project.py")], check=True)
 html = SOURCE.read_text(encoding="utf-8")
 
-html = re.sub(
-    r'\s*<link\b[^>]*href=["\']features/dependencies/region-planner\.css["\'][^>]*>\s*',
-    "\n", html, flags=re.IGNORECASE,
-)
+for removed_path in REMOVED_STYLE_PATHS:
+    html = re.sub(
+        rf'\s*<link\b[^>]*href=["\']{re.escape(removed_path)}["\'][^>]*>\s*',
+        "\n", html, flags=re.IGNORECASE,
+    )
 for removed_path in REMOVED_SCRIPT_PATHS:
     html = re.sub(
         rf'\s*<script\b[^>]*src=["\']{re.escape(removed_path)}["\'][^>]*>\s*</script>\s*',
@@ -62,9 +67,9 @@ for script_path in SCRIPT_PATHS:
 for managed_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
     if html.count(managed_path) != 1:
         raise SystemExit(f"Managed asset must appear exactly once: {managed_path} (found {html.count(managed_path)})")
-for removed_path in REMOVED_SCRIPT_PATHS:
+for removed_path in [*REMOVED_STYLE_PATHS, *REMOVED_SCRIPT_PATHS]:
     if removed_path in html:
-        raise SystemExit(f"Obsolete Region Planner script leaked into build: {removed_path}")
+        raise SystemExit(f"Removed production asset leaked into build: {removed_path}")
 
 if DIST.exists():
     shutil.rmtree(DIST)
@@ -81,9 +86,9 @@ for relative_path in [*STYLE_PATHS, *SCRIPT_PATHS]:
         raise SystemExit(f"Build output missing required asset: {relative_path}")
 
 built_html = (DIST / "index.html").read_text(encoding="utf-8")
-for forbidden in ("features/dependencies/region-planner.css", *REMOVED_SCRIPT_PATHS, "rs3-region-planner"):
+for forbidden in ("rs3-region-planner", *REMOVED_STYLE_PATHS, *REMOVED_SCRIPT_PATHS):
     if forbidden in built_html:
-        raise SystemExit(f"Floating or conflicting Region Planner code leaked into build: {forbidden}")
+        raise SystemExit(f"Conflicting or removed code leaked into build: {forbidden}")
 
 print(f"Built {DIST / 'index.html'}")
-print("Region Planner mounts natively and the simple level-aware Misthalin Route Planner is injected for production")
+print("Region Planner mounts natively; Route Planner is removed from production navigation")
