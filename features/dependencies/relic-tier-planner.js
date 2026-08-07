@@ -26,7 +26,6 @@
   let installTimer=null;
 
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const norm=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
   const asArray=value=>Array.isArray(value)?value.filter(Boolean):String(value||'').split(',').map(v=>v.trim()).filter(Boolean);
 
   function tierFor(name){
@@ -71,8 +70,6 @@
         map.set(name,{...(map.get(name)||{}),...info,name});
       }
     }catch{}
-    // Some app builds expose the relic array under a different global. Inspect
-    // shallow arrays only; this lets the tier UI reuse the existing ten relics.
     if(map.size<15){
       const seen=new Set();
       for(const key of Object.getOwnPropertyNames(globalThis)){
@@ -91,13 +88,7 @@
     for(const group of TIERS){
       for(const name of group.names){
         const existing=map.get(name)||{};
-        map.set(name,{
-          ...FALLBACKS[name],
-          ...existing,
-          name,
-          tier:group.tier,
-          tierStatus:'revealed'
-        });
+        map.set(name,{...FALLBACKS[name],...existing,name,tier:group.tier,tierStatus:'revealed'});
       }
     }
     return map;
@@ -320,10 +311,12 @@
     root.querySelector('[data-tier-close]')?.addEventListener('click',()=>closeDrawer(root));
   }
 
-  function install(){
+  function install(force=false){
     const planner=findPlanner();
     if(!planner)return false;
     let root=planner.page.querySelector('[data-relic-tier-planner]');
+    hideLegacy(planner);
+    if(root&&!force)return true;
     const relics=collectRelics();
     if(!root){
       root=document.createElement('div');
@@ -331,16 +324,15 @@
       root.className='relic-tier-planner';
       planner.legacyGrid.insertAdjacentElement('beforebegin',root);
     }
-    hideLegacy(planner);
     const preserve=activeRelic;
     renderBoard(root,relics);
     if(preserve&&relics.has(preserve))openDrawer(root,relics,relics.get(preserve));
     return true;
   }
 
-  function scheduleInstall(){
+  function scheduleInstall(force=false){
     clearTimeout(installTimer);
-    installTimer=setTimeout(install,120);
+    installTimer=setTimeout(()=>install(force),120);
   }
 
   document.addEventListener('keydown',event=>{
@@ -348,13 +340,16 @@
     const root=document.querySelector('[data-relic-tier-planner]');
     if(root)closeDrawer(root);
   });
-  window.addEventListener('rs3:relics-updated',scheduleInstall);
-  window.addEventListener('rs3:navigation-changed',scheduleInstall);
-  const observer=new MutationObserver(()=>scheduleInstall());
+  window.addEventListener('rs3:relics-updated',()=>scheduleInstall(true));
+  window.addEventListener('rs3:navigation-changed',()=>scheduleInstall(false));
+  const observer=new MutationObserver(()=>{
+    const planner=findPlanner();
+    if(planner&&!planner.page.querySelector('[data-relic-tier-planner]'))scheduleInstall(false);
+  });
   function init(){
     install();
     observer.observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  globalThis.RS3_TIER_RELIC_PLANNER={tiers:TIERS,getSelections:loadSelections,refresh:install};
+  globalThis.RS3_TIER_RELIC_PLANNER={tiers:TIERS,getSelections:loadSelections,refresh:()=>install(true)};
 })();
