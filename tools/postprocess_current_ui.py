@@ -12,12 +12,14 @@ html = INDEX.read_text(encoding="utf-8")
 styles = [
     "features/dependencies/task-tracker-enhancements.css",
     "features/dependencies/relic-planner-stability.css",
+    "features/dependencies/relic-tier-planner.css",
     "features/dependencies/league-atlas-phase2.css",
 ]
 scripts = [
     "features/dependencies/route-planner-removal.js",
     "features/dependencies/task-tracker-enhancements.js",
     "features/dependencies/relic-planner-stability.js",
+    "features/dependencies/relic-tier-planner.js",
     "features/dependencies/league-atlas-phase2.js",
 ]
 
@@ -95,7 +97,7 @@ relic_tags = "\n".join(f'  <script src="{path}"></script>' for path in relic_scr
 html = html.replace(relic_marker, f'{relic_tags}\n  {relic_marker}', 1)
 
 # Current Task Tracker, Route Planner-removal behavior, Relic Planner stability,
-# and the Phase 2 League Atlas can load after the app.
+# tiered Relic Planner, and the Phase 2 League Atlas can load after the app.
 for path in scripts:
     html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
@@ -118,6 +120,8 @@ for path in relic_scripts:
 for path in (
     "features/dependencies/relic-planner-stability.css",
     "features/dependencies/relic-planner-stability.js",
+    "features/dependencies/relic-tier-planner.css",
+    "features/dependencies/relic-tier-planner.js",
     "features/dependencies/league-atlas-phase2.css",
     "features/dependencies/league-atlas-phase2.js",
 ):
@@ -131,4 +135,4 @@ for path in relic_scripts:
         raise SystemExit(f"Relic data loaded too late, after planner initialization: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied Task Tracker layout, restored working 15-relic initialization order, stabilized Relic Planner scrolling, added the Phase 2 League Atlas, and kept Route Planner removed")
+print("Applied Task Tracker layout and pagination, restored working 15-relic initialization order, added official tiered Relic Planner drawer UI, stabilized Relic Planner scrolling, added the Phase 2 League Atlas, and kept Route Planner removed")
