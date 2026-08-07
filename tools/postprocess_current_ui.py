@@ -20,6 +20,7 @@ scripts = [
     "features/dependencies/task-tracker-enhancements.js",
     "features/dependencies/relic-planner-stability.js",
     "features/dependencies/relic-tier-planner.js",
+    "features/dependencies/relic-tier-icons.js",
     "features/dependencies/league-atlas-phase2.js",
 ]
 
@@ -97,7 +98,7 @@ relic_tags = "\n".join(f'  <script src="{path}"></script>' for path in relic_scr
 html = html.replace(relic_marker, f'{relic_tags}\n  {relic_marker}', 1)
 
 # Current Task Tracker, Route Planner-removal behavior, Relic Planner stability,
-# tiered Relic Planner, and the Phase 2 League Atlas can load after the app.
+# tiered Relic Planner, supplied relic artwork, and the Phase 2 League Atlas can load after the app.
 for path in scripts:
     html = html.replace("</body>", f'  <script src="{path}"></script>\n</body>', 1)
 
@@ -122,6 +123,7 @@ for path in (
     "features/dependencies/relic-planner-stability.js",
     "features/dependencies/relic-tier-planner.css",
     "features/dependencies/relic-tier-planner.js",
+    "features/dependencies/relic-tier-icons.js",
     "features/dependencies/league-atlas-phase2.css",
     "features/dependencies/league-atlas-phase2.js",
 ):
@@ -135,4 +137,4 @@ for path in relic_scripts:
         raise SystemExit(f"Relic data loaded too late, after planner initialization: {path}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Applied Task Tracker layout and pagination, restored working 15-relic initialization order, added official tiered Relic Planner drawer UI, stabilized Relic Planner scrolling, added the Phase 2 League Atlas, and kept Route Planner removed")
+print("Applied Task Tracker layout and pagination, restored working 15-relic initialization order, added official tiered Relic Planner drawer UI and supplied relic artwork, stabilized Relic Planner scrolling, added the Phase 2 League Atlas, and kept Route Planner removed")
