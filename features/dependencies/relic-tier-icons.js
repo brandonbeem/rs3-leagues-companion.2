@@ -12,26 +12,34 @@
     'Naragi Edict':'features/dependencies/relic-icons/naragi-edict.png',
     'Icyenic Faith':'features/dependencies/relic-icons/icyenic-faith.png'
   };
+
   const REPLACEMENT_SPRITE='features/dependencies/relic-icons/original-ten-replacements.webp';
   const REPLACEMENTS={
     'Endless Harvest':[0,0],
-    'Survivalist':[25,0],
-    'Golden Touch':[50,0],
-    'Superheated':[75,0],
-    'Divine Druid':[100,0],
-    "Nature's Network":[0,100],
-    "Assassin's Insight":[25,100],
-    'Voidwalker':[50,100],
-    'Crystal Grace':[75,100],
-    'Transmutation':[100,100]
+    'Survivalist':[1,0],
+    'Golden Touch':[2,0],
+    'Superheated':[3,0],
+    'Divine Druid':[4,0],
+    "Nature's Network":[0,1],
+    "Assassin's Insight":[1,1],
+    'Voidwalker':[2,1],
+    'Crystal Grace':[3,1],
+    'Transmutation':[4,1]
   };
+
   globalThis.RS3_RELIC_TIER_ICONS=Object.assign({},globalThis.RS3_RELIC_TIER_ICONS||{},ICONS);
 
+  function spriteMarkup(name){
+    const cell=REPLACEMENTS[name];
+    if(!cell)return '';
+    const [column,row]=cell;
+    const x=-(column*128+8);
+    const y=-(row*112);
+    return `<svg viewBox="0 0 112 112" width="100%" height="100%" aria-hidden="true" focusable="false" data-supplied-relic-icon="true"><image href="${REPLACEMENT_SPRITE}" x="${x}" y="${y}" width="640" height="224" preserveAspectRatio="none"></image></svg>`;
+  }
+
   function imageMarkup(name){
-    const pos=REPLACEMENTS[name];
-    if(pos){
-      return `<span aria-hidden="true" data-supplied-relic-icon="true" style="display:block;width:100%;height:100%;background-image:url('${REPLACEMENT_SPRITE}');background-repeat:no-repeat;background-size:500% 200%;background-position:${pos[0]}% ${pos[1]}%"></span>`;
-    }
+    if(REPLACEMENTS[name])return spriteMarkup(name);
     const src=ICONS[name];
     return src?`<img src="${src}" alt="${name} relic icon" loading="lazy" data-supplied-relic-icon="true">`:'';
   }
